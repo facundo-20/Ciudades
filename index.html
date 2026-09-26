@@ -1,0 +1,350 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buenos Aires Real 3D</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.145.0/Build/Cesium/Widgets/widgets.css">
+<script src="https://cdn.jsdelivr.net/npm/cesium@1.145.0/Build/Cesium/Cesium.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root { color-scheme: dark; --ink:#0a0e13; --panel:rgba(11,16,22,.78); --line:rgba(233,237,242,.14); --text:#e9edf2; --muted:#8f9baa; --sodium:#ffb45e; --wave:#9fe3ff;
+          --display:"Big Shoulders Display","Arial Narrow",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace; }
+  html, body { margin:0; height:100%; background:var(--ink); color:var(--text); font-family:var(--mono); overflow:hidden; }
+  #escenario { position:fixed; inset:0; display:grid; place-items:center; background:#000; }
+  #cesium { width:100%; height:100%; }
+  body.vertical #cesium { height:100%; width:auto; aspect-ratio:9/16; }
+  .cesium-viewer-bottom { left:10px !important; bottom:6px !important; }   /* créditos de Google/Cesium: obligatorios, siempre visibles */
+  #cesium canvas { transition: filter .6s; }
+  body.g-dorada #cesium canvas { filter: saturate(1.12) contrast(1.06) sepia(.10) brightness(1.03); }
+  body.g-azul   #cesium canvas { filter: hue-rotate(185deg) saturate(.55) brightness(.62) contrast(1.15); }
+  body.g-neutro #cesium canvas { filter: none; }
+  #fundido { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity .55s; z-index:1; }
+  #fundido.on { opacity:1; }
+
+  .hud { position:fixed; z-index:2; }
+  .ficha { top:18px; left:18px; pointer-events:none; text-shadow:0 2px 24px rgba(0,0,0,.6); }
+  .ficha h1 { margin:0; font:800 clamp(34px,6vw,76px)/.86 var(--display); text-transform:uppercase; letter-spacing:.01em; }
+  .ficha .toma { font:600 clamp(16px,2.2vw,24px) var(--display); color:var(--sodium); text-transform:uppercase; letter-spacing:.05em; margin-top:6px; }
+  .consola { left:50%; transform:translateX(-50%); bottom:16px; width:min(1080px,calc(100% - 32px)); background:var(--panel); border:1px solid var(--line);
+             backdrop-filter:blur(10px); border-radius:10px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; padding:10px 14px; }
+  .grupo { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .grupo > span { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-right:2px; }
+  button { font:500 12px/1 var(--mono); color:var(--text); background:transparent; border:1px solid var(--line); border-radius:6px; padding:8px 10px; cursor:pointer; }
+  button:hover { border-color:rgba(255,180,94,.55); }
+  button[aria-pressed="true"] { background:var(--sodium); color:#1a1004; border-color:var(--sodium); }
+  button.rec[aria-pressed="true"] { background:#e5484d; border-color:#e5484d; color:#fff; }
+  input[type=range] { accent-color:var(--sodium); width:110px; }
+  body.led .hud { display:none; }
+  body.led #cesium { cursor:none; }
+
+  #llave[hidden] { display:none; }
+  #llave { position:fixed; inset:0; z-index:5; display:grid; place-items:center; background:rgba(10,14,19,.94); }
+  #llave form { width:min(560px,calc(100% - 32px)); background:#111820; border:1px solid var(--line); border-radius:12px; padding:22px; }
+  #llave h2 { margin:0 0 6px; font:800 34px/1 var(--display); text-transform:uppercase; }
+  #llave p, #llave li { color:var(--muted); font-size:13px; line-height:1.6; }
+  #llave a { color:var(--wave); }
+  #llave input { width:100%; box-sizing:border-box; font:13px var(--mono); color:var(--text); background:#0a0e13; border:1px solid var(--line); border-radius:6px; padding:10px; margin:8px 0 12px; }
+  #llave .fila { display:flex; gap:8px; justify-content:flex-end; }
+  #estado { position:fixed; right:18px; top:18px; z-index:2; font-size:11px; color:var(--muted); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:7px 10px; }
+  body.led #estado { display:none; }
+  #ayudaLibre { position:fixed; right:18px; top:56px; z-index:2; font-size:11px; line-height:1.7; color:var(--muted); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 10px; text-align:right; display:none; }
+  #ayudaLibre kbd { font-family:var(--mono); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:0 4px; }
+  body.libre #ayudaLibre { display:block; } body.led #ayudaLibre { display:none; }
+  body.libre #cesium { cursor:grab; } body.libre #cesium:active { cursor:grabbing; }
+  @media (max-width:640px) { .consola { gap:8px; padding:8px; } button { padding:7px 8px; } #estado { display:none; } }
+</style>
+</head>
+<body class="g-dorada">
+<div id="escenario"><div id="cesium"></div></div>
+<div id="fundido"></div>
+
+<header class="hud ficha"><h1>Buenos Aires</h1><div class="toma" id="nombreToma">Obelisco</div></header>
+<div id="estado">cargando…</div>
+<div id="ayudaLibre" aria-hidden="true">
+  <div><b>Cámara libre</b></div>
+  <div>arrastrar = mover · <kbd>Ctrl</kbd>/rueda apretada + arrastrar = girar</div>
+  <div>rueda = acercar · doble clic = volar a ese punto</div>
+  <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> volar · <kbd>Q</kbd><kbd>E</kbd> subir/bajar · <kbd>Shift</kbd> rápido</div>
+  <div><kbd>1</kbd>–<kbd>6</kbd> vuelve a las tomas automáticas</div>
+</div>
+
+<nav class="hud consola" aria-label="Controles">
+  <div class="grupo" id="tomas"><span>Toma</span></div>
+  <div class="grupo"><span>Vel.</span><input id="vel" type="range" min="0.2" max="3" step="0.05" value="1" aria-label="Velocidad"></div>
+  <div class="grupo" id="grados"><span>Color</span>
+    <button type="button" data-g="dorada" aria-pressed="true">Tarde</button>
+    <button type="button" data-g="neutro">Neutro</button>
+    <button type="button" data-g="azul">Hora azul</button>
+  </div>
+  <div class="grupo"><span>Salida</span>
+    <button type="button" id="formato">16:9</button>
+    <button type="button" id="grabar" class="rec">● Grabar</button>
+    <button type="button" id="led">Modo LED</button>
+    <button type="button" id="pantalla">Pantalla</button>
+    <button type="button" id="cambiarLlave">Token</button>
+  </div>
+</nav>
+
+<div id="llave" hidden>
+  <form>
+    <h2>Conectar el 3D real</h2>
+    <p>Este visor usa el modelo fotogramétrico de Google (Photorealistic 3D Tiles) a través de Cesium ion. La cuenta Community es gratis y no pide tarjeta.</p>
+    <ol>
+      <li>Creá la cuenta en <a href="https://ion.cesium.com/signup" target="_blank" rel="noopener">ion.cesium.com/signup</a>.</li>
+      <li>En <b>Asset Depot</b> buscá “Google Photorealistic 3D Tiles” y tocá <b>Add to my assets</b>.</li>
+      <li>En <b>Access Tokens</b> copiá el <i>Default Token</i> y pegalo acá. Queda guardado solo en este navegador.</li>
+    </ol>
+    <input id="token" type="password" autocomplete="off" placeholder="eyJhbGciOi…" aria-label="Token de Cesium ion">
+    <div class="fila"><button type="submit" aria-pressed="true">Entrar</button></div>
+  </form>
+</div>
+
+<script>
+'use strict';
+// ---------- geografía (Obelisco = origen; eje de la 9 de Julio: 357.4°) ----------
+const O = { lon: -58.381592, lat: -34.603722 };
+const EJE = -2.6;                          // grados: rumbo de la avenida hacia el norte
+let G = 40;                                // altura elipsoidal del suelo (se corrige midiendo el modelo)
+const R2D = 180 / Math.PI, D2R = Math.PI / 180;
+function punto(e, n, h) {                  // metros este / norte desde el Obelisco -> Cartesian3
+  const lat = O.lat + n / 110574, lon = O.lon + e / (111320 * Math.cos(O.lat * D2R));
+  return Cesium.Cartesian3.fromDegrees(lon, lat, G + h);
+}
+function sobreEje(d, lat = 0) {            // d metros a lo largo de la avenida (+ norte), lat metros al costado (+ este)
+  const a = EJE * D2R; return [d * Math.sin(a) + lat * Math.cos(a), d * Math.cos(a) - lat * Math.sin(a)];
+}
+const suave = (x) => x * x * (3 - 2 * x);
+
+// ---------- tomas (inspiradas en un vuelo de dron sobre la 9 de Julio) ----------
+// cada toma: dur (s a velocidad 1) y cam(t 0..1) -> {e, n, h, heading, pitch} o {orbita: {e,n,h, rango, heading, pitch}}
+const TOMAS = {
+  obelisco:   { nombre: 'Obelisco', dur: 22, cam: (t) => ({ orbita: { e: 0, n: 0, h: 45, rango: 260, heading: 200 + t * 110, pitch: -24 + 6 * Math.sin(t * Math.PI) } }) },
+  avenida:    { nombre: 'Av. 9 de Julio', dur: 20, cam: (t) => { const [e, n] = sobreEje(-620 + t * 520, 0); return { e, n, h: 120 - t * 30, heading: EJE, pitch: -16 }; } },
+  cenital:    { nombre: 'Cenital · cruce', dur: 18, cam: (t) => { const [e, n] = sobreEje(-140 + t * 60, 0); return { e, n, h: 170, heading: EJE + t * 25, pitch: -89.9 }; } },
+  colon:      { nombre: 'Teatro Colón', dur: 20, cam: (t) => ({ orbita: { e: -159, n: 291, h: 18, rango: 190, heading: 120 + t * 80, pitch: -30 } }) },
+  alta:       { nombre: 'Panorámica', dur: 22, cam: (t) => { const [e, n] = sobreEje(-900 + t * 250, 40); return { e, n, h: 330, heading: EJE + 4 - t * 8, pitch: -18 }; } },
+  rasante:    { nombre: 'Vuelo rasante', dur: 16, cam: (t) => { const [e, n] = sobreEje(260 - t * 230, -8); return { e, n, h: 38, heading: EJE + 180, pitch: -8 }; } },
+};
+const ORDEN = ['obelisco', 'avenida', 'cenital', 'colon', 'alta', 'rasante'];
+
+// ---------- estado ----------
+const qs = new URLSearchParams(location.search);
+const estado = { libre: false, toma: TOMAS[qs.get('toma')] ? qs.get('toma') : 'obelisco', t0: 0, vel: +(qs.get('vel') || 1), recorrido: qs.get('recorrido') !== '0', led: false };
+const $ = (id) => document.getElementById(id);
+function avisar(txt) { $('estado').textContent = txt; }
+function leerToken() { if (window.ION_TOKEN) return window.ION_TOKEN; try { return localStorage.getItem('ionToken') || ''; } catch { return ''; } }   // el archivo local manda
+function guardarToken(t) { try { localStorage.setItem('ionToken', t); } catch {} }
+
+let viewer = null, tileset = null, reloj = 0, ultimo = performance.now();
+
+async function iniciar(token) {
+  Cesium.Ion.defaultAccessToken = token;
+  viewer = new Cesium.Viewer('cesium', {
+    baseLayer: false, baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false, navigationHelpButton: false,
+    animation: false, timeline: false, fullscreenButton: false, infoBox: false, selectionIndicator: false, requestRenderMode: false,
+    contextOptions: { webgl: { preserveDrawingBuffer: true } },   // necesario para grabar el canvas
+  });
+  const sc = viewer.scene;
+  sc.globe.show = false;                    // solo el modelo de Google, sin el globo debajo
+  sc.skyAtmosphere.show = true; sc.fog.enabled = true; sc.fog.density = 0.00012;
+  sc.postProcessStages.fxaa.enabled = true;
+  viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.5);
+  viewer.clock.currentTime = Cesium.JulianDate.fromIso8601('2026-03-15T20:30:00Z');   // 17:30 en BA: luz de tarde como el video
+  try {
+    tileset = await Cesium.createGooglePhotorealistic3DTileset({ onlyUsingWithGoogleGeocoder: true },
+      { cacheBytes: 512 * 1024 * 1024, maximumCacheOverflowBytes: 256 * 1024 * 1024 });   // la PC tiene 8 GB de RAM
+    tileset.maximumScreenSpaceError = +(qs.get('detalle') || 8);   // más bajo = más detalle (y más consumo)
+    sc.primitives.add(tileset);
+  } catch (err) {
+    avisar('No se pudo cargar el 3D: ' + (err.message || err)); try { localStorage.removeItem('ionToken'); } catch {} pedirToken(true); return;
+  }
+  avisar('conectado · Google Photorealistic 3D Tiles');
+  medirSuelo();
+  sc.preUpdate.addEventListener(cuadro);
+  prepararMouse();
+  ponerToma(estado.toma);
+}
+
+async function medirSuelo() {                // mide la altura real de la avenida junto al Obelisco
+  try {
+    await new Promise((r) => setTimeout(r, 4000));
+    const [e, n] = sobreEje(60, 30);
+    const c = Cesium.Cartographic.fromDegrees(O.lon + e / (111320 * Math.cos(O.lat * D2R)), O.lat + n / 110574);
+    const [res] = await viewer.scene.sampleHeightMostDetailed([c]);
+    if (res && isFinite(res.height) && res.height > 0 && res.height < 120) G = res.height;
+  } catch {}
+}
+
+function aplicarCam(c) {
+  const cam = viewer.camera;
+  if (c.orbita) {
+    const o = c.orbita, centro = punto(o.e, o.n, o.h);
+    cam.lookAt(centro, new Cesium.HeadingPitchRange(o.heading * D2R, o.pitch * D2R, o.rango));
+  } else {
+    cam.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    cam.setView({ destination: punto(c.e, c.n, c.h), orientation: { heading: c.heading * D2R, pitch: c.pitch * D2R, roll: 0 } });
+  }
+}
+
+function cuadro() {
+  const ahora = performance.now(), dt = Math.min(0.1, (ahora - ultimo) / 1000); ultimo = ahora;
+  reloj += dt * estado.vel;
+  if (estado.libre) { volarConTeclas(dt); return; }
+  const T = TOMAS[estado.toma], x = (reloj - estado.t0) / T.dur;
+  if (x >= 1 && estado.recorrido) { siguiente(); return; }
+  aplicarCam(T.cam(suave(Math.min(1, Math.max(0, x)))));
+}
+
+// ---------- cámara libre (mouse + teclado) ----------
+const teclas = new Set();
+function modoLibre(on) {
+  estado.libre = !!on; if (on) estado.recorrido = false;
+  document.body.classList.toggle('libre', estado.libre);
+  if (viewer) {
+    viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);   // suelta la órbita sin mover la vista
+    const c = viewer.scene.screenSpaceCameraController; c.enableInputs = true;
+  }
+  if (on) $('nombreToma').textContent = 'Cámara libre';
+  document.querySelectorAll('#tomas button').forEach((b) => b.setAttribute('aria-pressed', String(on ? b.dataset.t === 'libre' : (b.dataset.t === estado.toma || (b.dataset.t === 'recorrido' && estado.recorrido)))));
+}
+function volarConTeclas(dt) {
+  if (!teclas.size) return;
+  const cam = viewer.camera, alto = Math.max(20, viewer.scene.globe.ellipsoid.cartesianToCartographic(cam.position).height - G);
+  const v = (teclas.has('shift') ? 4 : 1) * Math.max(15, alto * 0.9) * dt;   // más rápido cuanto más alto
+  if (teclas.has('w')) cam.moveForward(v); if (teclas.has('s')) cam.moveBackward(v);
+  if (teclas.has('a')) cam.moveLeft(v); if (teclas.has('d')) cam.moveRight(v);
+  if (teclas.has('e')) cam.moveUp(v); if (teclas.has('q')) cam.moveDown(v);
+}
+function prepararMouse() {
+  const cv = viewer.scene.canvas, sc = viewer.scene;
+  const c = sc.screenSpaceCameraController;
+  c.minimumZoomDistance = 15; c.enableCollisionDetection = true; c.inertiaSpin = 0.85; c.inertiaTranslate = 0.85; c.inertiaZoom = 0.7;
+  viewer.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+  const tomarControl = () => { if (!estado.libre) modoLibre(true); };
+  cv.addEventListener('pointerdown', tomarControl); cv.addEventListener('wheel', tomarControl, { passive: true });
+  const h = new Cesium.ScreenSpaceEventHandler(cv);
+  h.setInputAction((ev) => {                 // doble clic: volar hacia el punto, a 250 m, mirándolo
+    const p = sc.pickPosition(ev.position); if (!Cesium.defined(p)) return;
+    modoLibre(true);
+    viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(p, 30), { offset: new Cesium.HeadingPitchRange(viewer.camera.heading, -0.45, 250), duration: 1.6 });
+  }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+}
+
+let cambiando = false;
+function siguiente() {
+  if (cambiando) return; cambiando = true;
+  const i = ORDEN.indexOf(estado.toma);
+  fundir(() => ponerToma(ORDEN[(i + 1) % ORDEN.length]));
+}
+function fundir(fn) {
+  $('fundido').classList.add('on');
+  setTimeout(() => { fn(); setTimeout(() => { $('fundido').classList.remove('on'); cambiando = false; }, 250); }, 560);
+}
+function ponerToma(k) {
+  if (!TOMAS[k]) return;
+  if (estado.libre) modoLibre(false);
+  estado.toma = k; estado.t0 = reloj;
+  $('nombreToma').textContent = TOMAS[k].nombre;
+  document.querySelectorAll('#tomas button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === k || (b.dataset.t === 'recorrido' && estado.recorrido))));
+  if (viewer) aplicarCam(TOMAS[k].cam(0));
+}
+
+// ---------- interfaz ----------
+for (const k of ORDEN) {
+  const b = document.createElement('button'); b.type = 'button'; b.dataset.t = k; b.textContent = TOMAS[k].nombre;
+  b.addEventListener('click', () => { estado.recorrido = false; fundir(() => ponerToma(k)); });
+  $('tomas').appendChild(b);
+}
+const bRec = document.createElement('button'); bRec.type = 'button'; bRec.dataset.t = 'recorrido'; bRec.textContent = 'Recorrido ▶';
+bRec.addEventListener('click', () => { estado.recorrido = !estado.recorrido; ponerToma(estado.toma); });
+$('tomas').appendChild(bRec);
+const bLib = document.createElement('button'); bLib.type = 'button'; bLib.dataset.t = 'libre'; bLib.textContent = 'Libre 🖱';
+bLib.addEventListener('click', () => modoLibre(!estado.libre));
+$('tomas').appendChild(bLib);
+
+$('vel').value = estado.vel; $('vel').addEventListener('input', (e) => { estado.vel = +e.target.value; });
+function grado(g) {
+  document.body.classList.remove('g-dorada', 'g-neutro', 'g-azul'); document.body.classList.add('g-' + g);
+  document.querySelectorAll('#grados button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.g === g)));
+}
+document.querySelectorAll('#grados button').forEach((b) => b.addEventListener('click', () => grado(b.dataset.g)));
+function formato(v) {
+  document.body.classList.toggle('vertical', v); $('formato').textContent = v ? '9:16' : '16:9';
+  setTimeout(() => viewer && viewer.resize(), 50);
+}
+$('formato').addEventListener('click', () => formato(!document.body.classList.contains('vertical')));
+function led(on) { estado.led = !!on; document.body.classList.toggle('led', estado.led); }
+$('led').addEventListener('click', () => led(true));
+function pantalla() { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+$('pantalla').addEventListener('click', pantalla);
+$('cambiarLlave').addEventListener('click', () => pedirToken(false));
+addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  const k = e.key.toLowerCase(), n = parseInt(k, 10);
+  if (estado.libre && 'wasdqe'.includes(k) && k.length === 1) { teclas.add(k); e.preventDefault(); return; }
+  if (k === 'shift') { teclas.add('shift'); return; }
+  if (k === 'l') { modoLibre(!estado.libre); return; }
+  if (n >= 1 && n <= ORDEN.length) { estado.recorrido = false; fundir(() => ponerToma(ORDEN[n - 1])); }
+  else if (k === 'r') { estado.recorrido = !estado.recorrido; ponerToma(estado.toma); }
+  else if (k === 'h') led(!estado.led); else if (k === 'f') pantalla();
+  else if (k === 'escape' && estado.led) led(false);
+});
+
+addEventListener('keyup', (e) => teclas.delete(e.key.toLowerCase()));
+addEventListener('blur', () => teclas.clear());
+
+// ---------- grabación (webm para Resolume / Premiere) ----------
+let grabador = null, trozos = [];
+$('grabar').addEventListener('click', () => {
+  const b = $('grabar');
+  if (grabador) { grabador.stop(); return; }
+  const canvas = viewer && viewer.scene.canvas; if (!canvas) return;
+  const tipo = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t));
+  grabador = new MediaRecorder(canvas.captureStream(30), { mimeType: tipo, videoBitsPerSecond: 24e6 }); trozos = [];
+  grabador.ondataavailable = (e) => e.data.size && trozos.push(e.data);
+  grabador.onstop = () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(trozos, { type: 'video/webm' }));
+    a.download = 'ba_real_' + estado.toma + '_' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.webm'; a.click();
+    grabador = null; b.setAttribute('aria-pressed', 'false'); b.textContent = '● Grabar';
+  };
+  grabador.start(1000); b.setAttribute('aria-pressed', 'true'); b.textContent = '■ Parar';
+});
+
+// ---------- API para TouchDesigner / Resolume ----------
+window.escena = {
+  toma: (k) => { estado.recorrido = false; fundir(() => ponerToma(k)); },
+  recorrido: (on = true) => { estado.recorrido = !!on; },
+  velocidad: (v) => { estado.vel = Math.max(0.05, +v); $('vel').value = estado.vel; },
+  color: (g) => grado(g), led, libre: (on = true) => modoLibre(on),
+  irA: (lon, lat, alto = 300) => { modoLibre(true); viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lon, lat, G + alto), orientation: { heading: 0, pitch: -0.6 } }); }, formato: (f) => formato(f === 'vertical' || f === '9:16'),
+};
+if (qs.get('ws')) {
+  try {
+    const s = new WebSocket(qs.get('ws'));
+    s.onmessage = (ev) => { try { const d = JSON.parse(ev.data); for (const [k, v] of Object.entries(d)) if (window.escena[k]) window.escena[k](v); } catch {} };
+  } catch {}
+}
+
+// ---------- arranque ----------
+if (qs.get('led') === '1') led(true);
+if (qs.get('formato') === 'vertical') formato(true);
+if (qs.get('color')) grado(qs.get('color'));
+function pedirToken(error) {
+  $('llave').hidden = false; $('token').value = leerToken();
+  if (error) $('llave').querySelector('p').textContent = 'El token no funcionó o falta agregar “Google Photorealistic 3D Tiles” a tus assets. Revisá los pasos:';
+  $('token').focus();
+}
+$('llave').querySelector('form').addEventListener('submit', (e) => {
+  e.preventDefault(); const t = $('token').value.trim(); if (!t) return;
+  guardarToken(t); $('llave').hidden = true;
+  if (viewer) { location.reload(); return; }
+  iniciar(t);
+});
+const tk = leerToken();
+if (typeof Cesium === 'undefined') avisar('No cargó CesiumJS (¿sin internet?)');
+else if (tk) iniciar(tk); else pedirToken(false);
+</script>
+</body>
+</html>
