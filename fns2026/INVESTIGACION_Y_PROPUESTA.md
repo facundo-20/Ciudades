@@ -6,6 +6,8 @@ Fecha de la investigación: 27/09/2026. Cada dato lleva su fuente al final. Lo q
 
 ---
 
+> Complemento: **`HABILIDADES_APLICADAS.md`** baja cada técnica de los documentos de Facu (tracker, sala, IA, VALS y ROSAS, stand) a este proyecto.
+
 ## 1. Lo que hay que saber antes de todo
 
 **La temática ya está definida, y no es genérica: la FNS 2026 se llama "Parque Triásico".**
