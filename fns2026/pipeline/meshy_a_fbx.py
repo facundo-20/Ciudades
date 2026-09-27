@@ -49,6 +49,11 @@ ESTILO = {
     "hueso": ("real fossil photograph look, Ischigualasto red and grey-green sandstone, "
               "soft overhead light, no text, no watermark"),
     "maqueta": ("miniature diorama, handcrafted scale model look, soft studio light, no text"),
+    # El paisaje va a escala real y fotorrealista: PBR con rugosidad y normales de roca
+    # de verdad, luz de mediodía dura del desierto sanjuanino, nada de look de maqueta.
+    "paisaje": ("photorealistic terrain asset, real geological scale, PBR materials with "
+                "detailed albedo roughness and normal, harsh midday desert sunlight, "
+                "Ischigualasto Provincial Park San Juan Argentina, no text, no watermark"),
 }
 
 # Polígonos de salida de Meshy. blender_refinar.py después baja a lo que aguanta cada máquina.

@@ -42,6 +42,7 @@ NIVELES = {
     "dinosaurio": {"alto": 60000, "medio": 25000, "bajo": 8000},
     "hueso":      {"alto": 15000, "medio": 6000,  "bajo": 1500},
     "maqueta":    {"alto": 120000, "medio": 50000, "bajo": 15000},
+    "paisaje":    {"alto": 150000, "medio": 60000, "bajo": 12000},
 }
 TEXTURA_MAX = {"alto": 2048, "medio": 2048, "bajo": 1024}
 

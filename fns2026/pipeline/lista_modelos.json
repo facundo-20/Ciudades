@@ -4,52 +4,107 @@
     {
       "nombre": "herrerasaurus",
       "prompt": "Herrerasaurus ischigualastensis, bipedal early carnivorous dinosaur, 4 meters long, long tail, three-fingered grasping hands, narrow skull with serrated teeth, walking pose",
-      "largo_m": 4.0, "alto_m": 1.1, "rig": true, "destino": "dinosaurio"
+      "largo_m": 4.0,
+      "alto_m": 1.1,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "eoraptor",
       "prompt": "Eoraptor lunensis, small bipedal early dinosaur, 1 meter long, slender, light build, running pose",
-      "largo_m": 1.0, "alto_m": 0.35, "rig": true, "destino": "dinosaurio"
+      "largo_m": 1.0,
+      "alto_m": 0.35,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "panphagia",
       "prompt": "Panphagia protos, small early sauropodomorph dinosaur, 1.3 meters long, long neck, bipedal, omnivore",
-      "largo_m": 1.3, "alto_m": 0.4, "rig": true, "destino": "dinosaurio"
+      "largo_m": 1.3,
+      "alto_m": 0.4,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "sanjuansaurus",
       "prompt": "Sanjuansaurus gordilloi, bipedal predatory herrerasaurid dinosaur, 3 meters long",
-      "largo_m": 3.0, "alto_m": 0.9, "rig": true, "destino": "dinosaurio"
+      "largo_m": 3.0,
+      "alto_m": 0.9,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "eodromaeus",
       "prompt": "Eodromaeus murphi, small early theropod dinosaur, 1.2 meters long, agile runner",
-      "largo_m": 1.2, "alto_m": 0.35, "rig": true, "destino": "dinosaurio"
+      "largo_m": 1.2,
+      "alto_m": 0.35,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "hyperodapedon",
       "prompt": "Hyperodapedon, Triassic rhynchosaur, quadrupedal, beaked skull, stocky body, 1.3 meters long",
-      "largo_m": 1.3, "alto_m": 0.4, "rig": true, "destino": "dinosaurio"
+      "largo_m": 1.3,
+      "alto_m": 0.4,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "ischigualastia",
       "prompt": "Ischigualastia jenseni, large Triassic dicynodont, quadrupedal, tusked beak, barrel body, 3 meters long",
-      "largo_m": 3.0, "alto_m": 1.2, "rig": true, "destino": "dinosaurio"
+      "largo_m": 3.0,
+      "alto_m": 1.2,
+      "rig": true,
+      "destino": "dinosaurio"
     },
     {
       "nombre": "hueso_craneo",
       "prompt": "fossilized Herrerasaurus skull partially embedded in red sandstone, paleontological excavation, top view",
-      "largo_m": 0.35, "destino": "hueso", "poligonos": 20000
+      "largo_m": 0.35,
+      "destino": "hueso",
+      "poligonos": 20000
     },
     {
       "nombre": "hueso_femur",
       "prompt": "fossilized dinosaur femur bone lying on red sandstone, paleontological excavation, top view",
-      "largo_m": 0.30, "destino": "hueso", "poligonos": 15000
+      "largo_m": 0.3,
+      "destino": "hueso",
+      "poligonos": 15000
     },
     {
       "nombre": "hueso_vertebras",
       "prompt": "articulated fossil dinosaur vertebrae column embedded in sandstone, top view",
-      "largo_m": 0.60, "destino": "hueso", "poligonos": 20000
+      "largo_m": 0.6,
+      "destino": "hueso",
+      "poligonos": 20000
+    },
+    {
+      "nombre": "el_hongo",
+      "destino": "paisaje",
+      "largo_m": 6.0,
+      "poligonos": 120000,
+      "prompt": "El Hongo rock formation of Ischigualasto Argentina, tall eroded mushroom-shaped hoodoo, thin weathered pedestal of pale grey-beige sandstone topped by a wider cap of harder sandstone, deep wind erosion grooves, layered strata, photorealistic geology"
+    },
+    {
+      "nombre": "bochas",
+      "destino": "paisaje",
+      "largo_m": 0.8,
+      "poligonos": 8000,
+      "prompt": "spherical sandstone concretion from Cancha de Bochas Ischigualasto, round grey-brown stone ball, weathered pitted surface, partially embedded in cracked clay, photorealistic"
+    },
+    {
+      "nombre": "suelo_arcilla",
+      "destino": "paisaje",
+      "largo_m": 4.0,
+      "poligonos": 30000,
+      "prompt": "tile of dry cracked desert clay ground, polygonal mud cracks with curled edges, pale grey-ochre, small pebbles and sand in the cracks, photorealistic, seamless ground patch"
+    },
+    {
+      "nombre": "barranca_colorada",
+      "destino": "paisaje",
+      "largo_m": 20.0,
+      "poligonos": 120000,
+      "prompt": "Barrancas Coloradas red sandstone cliff wall of Talampaya and Ischigualasto, horizontal red and ochre strata, vertical erosion gullies, talus of fallen rocks at the base, photorealistic"
     }
   ]
 }
