@@ -1,0 +1,55 @@
+{
+  "_nota": "Largos y altos aproximados de la bibliografía (a validar con un paleontólogo de la UNSJ antes de la fiesta). largo_m manda la escala en Blender; alto_m es lo que pide el rig de Meshy.",
+  "modelos": [
+    {
+      "nombre": "herrerasaurus",
+      "prompt": "Herrerasaurus ischigualastensis, bipedal early carnivorous dinosaur, 4 meters long, long tail, three-fingered grasping hands, narrow skull with serrated teeth, walking pose",
+      "largo_m": 4.0, "alto_m": 1.1, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "eoraptor",
+      "prompt": "Eoraptor lunensis, small bipedal early dinosaur, 1 meter long, slender, light build, running pose",
+      "largo_m": 1.0, "alto_m": 0.35, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "panphagia",
+      "prompt": "Panphagia protos, small early sauropodomorph dinosaur, 1.3 meters long, long neck, bipedal, omnivore",
+      "largo_m": 1.3, "alto_m": 0.4, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "sanjuansaurus",
+      "prompt": "Sanjuansaurus gordilloi, bipedal predatory herrerasaurid dinosaur, 3 meters long",
+      "largo_m": 3.0, "alto_m": 0.9, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "eodromaeus",
+      "prompt": "Eodromaeus murphi, small early theropod dinosaur, 1.2 meters long, agile runner",
+      "largo_m": 1.2, "alto_m": 0.35, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "hyperodapedon",
+      "prompt": "Hyperodapedon, Triassic rhynchosaur, quadrupedal, beaked skull, stocky body, 1.3 meters long",
+      "largo_m": 1.3, "alto_m": 0.4, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "ischigualastia",
+      "prompt": "Ischigualastia jenseni, large Triassic dicynodont, quadrupedal, tusked beak, barrel body, 3 meters long",
+      "largo_m": 3.0, "alto_m": 1.2, "rig": true, "destino": "dinosaurio"
+    },
+    {
+      "nombre": "hueso_craneo",
+      "prompt": "fossilized Herrerasaurus skull partially embedded in red sandstone, paleontological excavation, top view",
+      "largo_m": 0.35, "destino": "hueso", "poligonos": 20000
+    },
+    {
+      "nombre": "hueso_femur",
+      "prompt": "fossilized dinosaur femur bone lying on red sandstone, paleontological excavation, top view",
+      "largo_m": 0.30, "destino": "hueso", "poligonos": 15000
+    },
+    {
+      "nombre": "hueso_vertebras",
+      "prompt": "articulated fossil dinosaur vertebrae column embedded in sandstone, top view",
+      "largo_m": 0.60, "destino": "hueso", "poligonos": 20000
+    }
+  ]
+}
