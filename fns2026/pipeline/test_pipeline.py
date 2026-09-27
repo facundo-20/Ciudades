@@ -54,7 +54,7 @@ def main():
 
     # 1) modelo estático (GLB, como un hueso de Meshy)
     glb = os.path.join(tmp, "estatico.glb")
-    correr(os.path.join(AQUI, "prueba_simular_meshy.py"), glb)
+    correr(os.path.join(AQUI, "prueba_simular_meshy.py"), "--sin-rig", glb)
     correr(os.path.join(AQUI, "blender_refinar.py"), "--", glb, os.path.join(tmp, "e"),
            "--largo", "0.35", "--destino", "hueso", "--nombre", "hueso", "--sin-vista")
     inf = json.load(open(os.path.join(tmp, "e", "hueso_informe.json")))
@@ -63,6 +63,7 @@ def main():
     med = medir(os.path.join(tmp, "e", "hueso_alto.fbx"))
     chequear(abs(med["cajas"][0][4]) < 0.005, "estático: apoyado en z = 0")
     chequear(med["imagenes"] >= 1, "estático: la textura viaja adentro del FBX")
+    chequear(os.path.exists(os.path.join(tmp, "e", "hueso_bajo.obj")), "estático: OBJ para instancing en TD")
 
     # 2) modelo con rig (FBX, como el rigging de Meshy)
     fbx = os.path.join(tmp, "rig.fbx")

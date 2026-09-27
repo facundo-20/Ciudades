@@ -1,5 +1,8 @@
 # Habilidades de cada documento, aplicadas al Parque Triásico
 
+> **Actualización (27/09):** la arquitectura cambió. Ahora todo va por **TouchDesigner + Resolume Arena**, sin la app web ni Cesium, con modelos propios hechos con Meshy y Blender en FBX. Donde este documento dice "la app", leer "juegos_td.py en TD". Ver **`ARQUITECTURA.md`**.
+
+
 Este documento es el complemento de `INVESTIGACION_Y_PROPUESTA.md`.
 Cada fila toma una **técnica concreta** de uno de los documentos de Facu y dice en qué se convierte en la FNS 2026.
 No se agrega tecnología nueva: todo sale de cosas que ya están hechas o encargadas.

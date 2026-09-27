@@ -1,4 +1,7 @@
 # Fiesta Nacional del Sol 2026 · "Parque Triásico"
+
+> **Actualización (27/09):** la arquitectura cambió. Ahora todo va por **TouchDesigner + Resolume Arena**, sin la app web ni Cesium, con modelos propios hechos con Meshy y Blender en FBX. Donde este documento dice "la app", leer "juegos_td.py en TD". Ver **`ARQUITECTURA.md`**.
+
 ## Investigación y propuesta de pantallas inmersivas e interactivas
 
 Documento de trabajo para armar la presentación al **Ministerio de Turismo, Cultura y Deporte de San Juan**.

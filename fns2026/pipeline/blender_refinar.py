@@ -235,6 +235,11 @@ def exportar(objs, ruta_sin_ext):
         bake_anim=bool(arm),
     )
     bpy.ops.export_scene.gltf(filepath=ruta_sin_ext + ".glb", use_selection=True, export_format="GLB")
+    if not arm:
+        # OBJ para instancing en TD: el File In SOP lo lee directo, sin FBX COMP en el medio.
+        # Y arriba (TD), metros, con normales y UV.
+        bpy.ops.wm.obj_export(filepath=ruta_sin_ext + ".obj", export_selected_objects=True,
+                              forward_axis="NEGATIVE_Z", up_axis="Y", export_materials=True)
 
 
 def vista_previa(objs, ruta, largo):

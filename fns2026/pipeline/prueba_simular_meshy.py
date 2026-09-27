@@ -2,7 +2,7 @@
 Arma un GLB que imita lo que baja de Meshy, para probar blender_refinar.py sin red:
 escala cualquiera (27 unidades de largo), origen corrido, vértices duplicados en
 costuras, textura de 4K y un rig simple con una animación.
-    python3 prueba_simular_meshy.py salida.glb
+    python3 prueba_simular_meshy.py [--sin-rig] salida.glb
 """
 import math, sys
 import bpy
@@ -33,28 +33,29 @@ mat.node_tree.links.new(tex.outputs["Color"], mat.node_tree.nodes["Principled BS
 m.data.materials.append(mat)
 bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.uv.smart_project(); bpy.ops.object.mode_set(mode="OBJECT")
 img.pack()
-# rig de 3 huesos (cola, cadera, cuello) y una animación de caminata
-bpy.ops.object.armature_add(location=(35, -12, 10))
-arm = bpy.context.object
-bpy.ops.object.mode_set(mode="EDIT")
-eb = arm.data.edit_bones; b0 = eb[0]; b0.name = "cadera"; b0.head = (0, 0, 0); b0.tail = (4, 0, 0)
-cola = eb.new("cola"); cola.head = (0, 0, 0); cola.tail = (-18, 0, 0); cola.parent = b0
-cuello = eb.new("cuello"); cuello.head = (4, 0, 0); cuello.tail = (9, 0, 4); cuello.parent = b0
-bpy.ops.object.mode_set(mode="OBJECT")
-# pesos explícitos por zona (como un rig de Meshy: cada vértice a un hueso)
-for nom in ("cadera", "cola", "cuello"):
-    m.vertex_groups.new(name=nom)
-for v in m.data.vertices:
-    x = (m.matrix_world @ v.co).x - 35
-    nom = "cola" if x < -3 else ("cuello" if x > 4 else "cadera")
-    m.vertex_groups[nom].add([v.index], 1.0, "REPLACE")
-m.parent = arm
-m.matrix_parent_inverse = arm.matrix_world.inverted()
-mod = m.modifiers.new("Armature", "ARMATURE"); mod.object = arm
-arm.animation_data_create(); act = bpy.data.actions.new("caminar"); arm.animation_data.action = act
-pb = arm.pose.bones["cola"]
-for f, ang in ((1, -0.3), (15, 0.3), (30, -0.3)):
-    pb.rotation_mode = "XYZ"; pb.rotation_euler = (0, 0, ang); pb.keyframe_insert("rotation_euler", frame=f)
+if "--sin-rig" not in sys.argv:
+    # rig de 3 huesos (cola, cadera, cuello) y una animación de caminata
+    bpy.ops.object.armature_add(location=(35, -12, 10))
+    arm = bpy.context.object
+    bpy.ops.object.mode_set(mode="EDIT")
+    eb = arm.data.edit_bones; b0 = eb[0]; b0.name = "cadera"; b0.head = (0, 0, 0); b0.tail = (4, 0, 0)
+    cola = eb.new("cola"); cola.head = (0, 0, 0); cola.tail = (-18, 0, 0); cola.parent = b0
+    cuello = eb.new("cuello"); cuello.head = (4, 0, 0); cuello.tail = (9, 0, 4); cuello.parent = b0
+    bpy.ops.object.mode_set(mode="OBJECT")
+    # pesos explícitos por zona (como un rig de Meshy: cada vértice a un hueso)
+    for nom in ("cadera", "cola", "cuello"):
+        m.vertex_groups.new(name=nom)
+    for v in m.data.vertices:
+        x = (m.matrix_world @ v.co).x - 35
+        nom = "cola" if x < -3 else ("cuello" if x > 4 else "cadera")
+        m.vertex_groups[nom].add([v.index], 1.0, "REPLACE")
+    m.parent = arm
+    m.matrix_parent_inverse = arm.matrix_world.inverted()
+    mod = m.modifiers.new("Armature", "ARMATURE"); mod.object = arm
+    arm.animation_data_create(); act = bpy.data.actions.new("caminar"); arm.animation_data.action = act
+    pb = arm.pose.bones["cola"]
+    for f, ang in ((1, -0.3), (15, 0.3), (30, -0.3)):
+        pb.rotation_mode = "XYZ"; pb.rotation_euler = (0, 0, ang); pb.keyframe_insert("rotation_euler", frame=f)
 salida = sys.argv[-1]
 if salida.endswith(".fbx"):
     bpy.ops.export_scene.fbx(filepath=salida, add_leaf_bones=False, bake_anim=True)
