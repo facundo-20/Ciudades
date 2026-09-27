@@ -147,6 +147,16 @@ def main():
     if not a.simular and not os.environ.get("MESHY_API_KEY"):
         sys.exit("Falta MESHY_API_KEY (o usá --simular para probar sin Meshy).")
 
+    if not a.simular:
+        # un pedido de sólo lectura antes de arrancar: si la clave o la conexión fallan,
+        # se sabe en 1 segundo y con el motivo, no después de 4 modelos fallidos
+        sys.path.insert(0, AQUI)
+        import meshy_a_fbx
+        try:
+            meshy_a_fbx.diagnostico()
+        except SystemExit as e:
+            log("Meshy no acepta la clave o la conexión:\n" + str(e))
+            sys.exit("Frenado antes de empezar. Corré: python meshy_a_fbx.py --diagnostico")
     log(f"== {len(lista)} modelos · Blender: {blender[0]} · {'SIMULADO' if a.simular else 'Meshy real'} ==")
     hechos, fallidos = [], []
     for item in lista:

@@ -26,19 +26,36 @@ if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
 } else { Write-Host "   ya está" }
 
 Paso "3/4 Clave de Meshy"
+function ClaveValida($k) { return ($k -and $k -match '^msy_[A-Za-z0-9_-]{16,}$') }
 $clave = [Environment]::GetEnvironmentVariable("MESHY_API_KEY", "User")
-if (-not $clave) {
-    $seg = Read-Host "   Pegá la clave de Meshy (no se ve)" -AsSecureString
-    $clave = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
-        [Runtime.InteropServices.Marshal]::SecureStringToBSTR($seg))
+if (-not (ClaveValida $clave)) {
+    if ($clave) { Write-Host "   la clave guardada no es válida (se había pegado mal): la reemplazo" -ForegroundColor Red }
+    # Se toma del PORTAPAPELES: en el prompt oculto de PowerShell, Ctrl+V no pega el texto,
+    # mete un carácter de control (por eso aparecía un solo asterisco y Meshy daba 400).
+    Write-Host "   1) En meshy.ai → tu perfil → API, copiá la clave (empieza con msy_)."
+    Write-Host "   2) Volvé acá y apretá Enter. No hace falta pegar nada."
+    for ($i = 0; $i -lt 3 -and -not (ClaveValida $clave); $i++) {
+        Read-Host "   Enter cuando la tengas copiada" | Out-Null
+        $clave = -join (("$(Get-Clipboard -Raw)").ToCharArray() | Where-Object { $_ -match '[A-Za-z0-9_-]' })
+        if (-not (ClaveValida $clave)) { Write-Host "   lo copiado no parece una clave de Meshy (msy_...). Probá de nuevo." -ForegroundColor Red }
+    }
+    if (-not (ClaveValida $clave)) { throw "No se pudo leer una clave válida del portapapeles." }
     [Environment]::SetEnvironmentVariable("MESHY_API_KEY", $clave, "User")
+    Set-Clipboard -Value " "      # que la clave no quede dando vueltas en el portapapeles
+    Write-Host "   guardada ($($clave.Length) caracteres, empieza con $($clave.Substring(0,4)))"
+} else {
+    Write-Host "   ya está guardada ($($clave.Length) caracteres)"
 }
 $env:MESHY_API_KEY = $clave
 Write-Host "   ok"
 
 Paso "4/4 MCP de Meshy en Claude Code"
 # scope user: queda disponible en cualquier carpeta. Si ya estaba, se reemplaza.
-claude mcp remove meshy -s user 2>$null | Out-Null
+# "remove" da error si todavía no existe: en PowerShell 5 con Stop eso corta todo el script
+$ErrorActionPreference = "Continue"
+cmd /c "claude mcp remove meshy -s user >nul 2>&1"
+$ErrorActionPreference = "Stop"
+$clave = -join ($clave.ToCharArray() | Where-Object { $_ -match '[A-Za-z0-9_-]' })   # sin comillas ni invisibles
 claude mcp add meshy -s user -e "MESHY_API_KEY=$clave" -- npx -y "@meshy-ai/meshy-mcp-server"
 claude mcp list
 

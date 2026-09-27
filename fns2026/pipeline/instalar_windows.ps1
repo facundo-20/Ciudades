@@ -59,17 +59,25 @@ if ($aqui -and (Test-Path (Join-Path $aqui "correr_todo.py"))) {
 Write-Host "   proyecto en $raiz"
 
 Paso "3/4 Clave de Meshy"
+function ClaveValida($k) { return ($k -and $k -match '^msy_[A-Za-z0-9_-]{16,}$') }
 $clave = [Environment]::GetEnvironmentVariable("MESHY_API_KEY", "User")
-if (-not $clave) {
-    Write-Host "   Sacala de meshy.ai → tu perfil → API. Se guarda sólo en tu usuario de Windows."
-    $seg = Read-Host "   Pegá la clave (no se ve mientras escribís)" -AsSecureString
-    $clave = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
-        [Runtime.InteropServices.Marshal]::SecureStringToBSTR($seg))
-    if (-not $clave) { throw "No se cargó ninguna clave." }
+if (-not (ClaveValida $clave)) {
+    if ($clave) { Write-Host "   la clave guardada no es válida (se había pegado mal): la reemplazo" -ForegroundColor Red }
+    # Se toma del PORTAPAPELES: en el prompt oculto de PowerShell, Ctrl+V no pega el texto,
+    # mete un carácter de control (por eso aparecía un solo asterisco y Meshy daba 400).
+    Write-Host "   1) En meshy.ai → tu perfil → API, copiá la clave (empieza con msy_)."
+    Write-Host "   2) Volvé acá y apretá Enter. No hace falta pegar nada."
+    for ($i = 0; $i -lt 3 -and -not (ClaveValida $clave); $i++) {
+        Read-Host "   Enter cuando la tengas copiada" | Out-Null
+        $clave = -join (("$(Get-Clipboard -Raw)").ToCharArray() | Where-Object { $_ -match '[A-Za-z0-9_-]' })
+        if (-not (ClaveValida $clave)) { Write-Host "   lo copiado no parece una clave de Meshy (msy_...). Probá de nuevo." -ForegroundColor Red }
+    }
+    if (-not (ClaveValida $clave)) { throw "No se pudo leer una clave válida del portapapeles." }
     [Environment]::SetEnvironmentVariable("MESHY_API_KEY", $clave, "User")
-    Write-Host "   guardada. Para cambiarla: borrá la variable MESHY_API_KEY de tu usuario."
+    Set-Clipboard -Value " "      # que la clave no quede dando vueltas en el portapapeles
+    Write-Host "   guardada ($($clave.Length) caracteres, empieza con $($clave.Substring(0,4)))"
 } else {
-    Write-Host "   ya está guardada"
+    Write-Host "   ya está guardada ($($clave.Length) caracteres)"
 }
 $env:MESHY_API_KEY = $clave
 

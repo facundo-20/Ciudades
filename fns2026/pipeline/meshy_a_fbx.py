@@ -60,11 +60,34 @@ ESTILO = {
 POLIGONOS_MESHY = 60000
 
 
+_CLAVE_OK = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-")
+
+
 def _clave():
-    k = os.environ.get("MESHY_API_KEY", "").strip()
+    """La clave limpia. Un 400 pelado en TODOS los pedidos suele ser esto: al pegarla se
+    cuelan comillas, un espacio o un carácter invisible, y el encabezado Authorization
+    queda mal armado. Se deja sólo lo que puede tener una clave de Meshy (msy_...)."""
+    cruda = os.environ.get("MESHY_API_KEY", "")
+    k = "".join(c for c in cruda if c in _CLAVE_OK)
     if not k:
         sys.exit("Falta MESHY_API_KEY. En Mac: export MESHY_API_KEY=... · En Windows: set MESHY_API_KEY=...")
     return k
+
+
+def diagnostico():
+    """Revisa la clave (sin mostrarla) y hace un pedido mínimo de sólo lectura."""
+    cruda = os.environ.get("MESHY_API_KEY", "")
+    k = _clave()
+    print(f"clave: {len(k)} caracteres, empieza con '{k[:4]}'")
+    if cruda != k:
+        raros = sorted({repr(c) for c in cruda if c not in _CLAVE_OK})
+        print(f"  OJO: la clave guardada tenía caracteres de más que se sacaron: {', '.join(raros)}")
+        print("  Conviene volver a guardarla limpia (borrar MESHY_API_KEY y correr el instalador).")
+    if not k.startswith("msy_"):
+        print("  OJO: las claves de la API de Meshy empiezan con msy_. ¿Es la clave de API y no otra?")
+    r = _llamar("GET", f"{API}/v1/balance")
+    print(f"Meshy responde. Créditos: {r.get('balance', r)}")
+    return r
 
 
 def _url(tipo, id_tarea=None):
@@ -78,6 +101,9 @@ def _llamar(metodo, url, cuerpo=None, intentos=4):
     req = urllib.request.Request(url, data=datos, method=metodo, headers={
         "Authorization": f"Bearer {_clave()}",
         "Content-Type": "application/json",
+        "Accept": "application/json",
+        # sin esto urllib manda "Python-urllib/3.x", que algunos firewalls rechazan con un 400/403 pelado
+        "User-Agent": "fns2026-pipeline/1.0 (+https://github.com/facundo-20/Ciudades)",
     })
     espera = 2
     for i in range(intentos):
@@ -92,7 +118,9 @@ def _llamar(metodo, url, cuerpo=None, intentos=4):
                 espera *= 2
                 continue
             enviado = json.dumps(cuerpo, ensure_ascii=False)[:600] if cuerpo is not None else "-"
-            raise SystemExit(f"Meshy respondió {e.code} en {url}:\n{texto}\nPedido enviado: {enviado}")
+            servidor = f"{e.headers.get('Server', '?')} · {e.headers.get('Content-Type', '?')}"
+            raise SystemExit(f"Meshy respondió {e.code} en {url}:\n{texto.strip()[:800]}\n"
+                             f"Servidor: {servidor}\nPedido enviado: {enviado}")
         except urllib.error.URLError as e:
             if i < intentos - 1:
                 time.sleep(espera)
@@ -250,7 +278,11 @@ def main():
     ap.add_argument("salida", nargs="?", default="modelos_meshy")
     ap.add_argument("--solo", help="hacer sólo el ítem con este nombre")
     ap.add_argument("--probar", action="store_true", help="sin red: valida la lista y muestra los pedidos")
+    ap.add_argument("--diagnostico", action="store_true", help="revisa la clave y la conexión con Meshy")
     a = ap.parse_args()
+    if a.diagnostico:
+        diagnostico()
+        return
 
     with open(a.lista, encoding="utf-8") as f:
         lista = json.load(f)["modelos"]
