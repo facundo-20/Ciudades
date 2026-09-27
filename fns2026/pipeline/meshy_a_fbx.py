@@ -91,7 +91,8 @@ def _llamar(metodo, url, cuerpo=None, intentos=4):
                 time.sleep(espera)
                 espera *= 2
                 continue
-            raise SystemExit(f"Meshy respondió {e.code} en {url}:\n{texto}")
+            enviado = json.dumps(cuerpo, ensure_ascii=False)[:600] if cuerpo is not None else "-"
+            raise SystemExit(f"Meshy respondió {e.code} en {url}:\n{texto}\nPedido enviado: {enviado}")
         except urllib.error.URLError as e:
             if i < intentos - 1:
                 time.sleep(espera)
@@ -172,13 +173,8 @@ def pedido_rig(id_modelo, item):
 # Un ítem de la lista, de punta a punta
 # ---------------------------------------------------------------------------
 
-def hacer(item, salida):
-    nombre = item["nombre"]
-    carpeta = os.path.join(salida, nombre)
-    print(f"\n== {nombre} ==")
-
-    # 1) vistas. Si el ítem trae imágenes propias (fotos de un fósil real cedidas por
-    #    el MuPa, o un dibujo de Illustrator), se usan ésas y no se generan.
+def por_vistas(item, carpeta):
+    """Camino A: vistas multi-ángulo → multi-imagen a 3D. Da mejor geometría."""
     if item.get("vistas"):
         urls = item["vistas"]
     else:
@@ -188,20 +184,51 @@ def hacer(item, salida):
         for i, u in enumerate(urls):
             bajar(u, os.path.join(carpeta, f"vista_{i}.png"))
     if not urls:
-        raise SystemExit(f"{nombre}: Meshy no devolvió vistas.")
-
-    # 2) modelo: multi-vista da mejor geometría que una sola imagen
+        raise SystemExit("Meshy no devolvió vistas.")
     tipo = "multi_3d" if len(urls) > 1 else "imagen_3d"
     cuerpo = pedido_multi_3d(urls, item)
     if tipo == "imagen_3d":
         cuerpo = {**cuerpo, "image_url": urls[0]}
         cuerpo.pop("image_urls")
     id_m = crear(tipo, cuerpo)
-    r = esperar(tipo, id_m)
+    return id_m, esperar(tipo, id_m)
+
+
+def por_texto(item):
+    """Camino B: texto a 3D, borrador y después refinado con PBR. Es el endpoint más
+    viejo y estable de Meshy; se usa si el de vistas no está en el plan o rechaza el pedido."""
+    id_p = crear("texto_3d", pedido_texto_3d(item))
+    esperar("texto_3d", id_p)
+    id_r = crear("texto_3d", {"mode": "refine", "preview_task_id": id_p, "enable_pbr": True})
+    return id_r, esperar("texto_3d", id_r)
+
+
+def hacer(item, salida):
+    nombre = item["nombre"]
+    carpeta = os.path.join(salida, nombre)
+    os.makedirs(carpeta, exist_ok=True)
+    print(f"\n== {nombre} ==")
+
+    camino = os.environ.get("MESHY_CAMINO", "auto")      # auto | vistas | texto
+    if camino == "texto":
+        id_m, r = por_texto(item)
+    else:
+        try:
+            id_m, r = por_vistas(item, carpeta)
+        except SystemExit as e:
+            if camino == "vistas" or item.get("vistas"):
+                raise
+            print(f"   las vistas fallaron, sigo con texto a 3D:\n   {str(e)[:400]}")
+            id_m, r = por_texto(item)
+
     urls_modelo = r.get("model_urls", {})
+    bajados = 0
     for fmt in ("glb", "fbx"):
         if urls_modelo.get(fmt):
             bajar(urls_modelo[fmt], os.path.join(carpeta, f"{nombre}_meshy.{fmt}"))
+            bajados += 1
+    if not bajados:
+        raise SystemExit(f"{nombre}: la tarea terminó pero no trae model_urls: {list(r)}")
 
     # 3) rig + animaciones básicas, sólo para lo que se mueve (dinosaurios, no huesos)
     if item.get("rig"):
