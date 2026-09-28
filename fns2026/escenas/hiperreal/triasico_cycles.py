@@ -166,6 +166,9 @@ ESPECIES_LUGARES = {
     "ischigualastia": [(114, 6.5, 2.4), (118.5, 4.5, 2.1), (121, 8.5, 2.6)],
     "eodromaeus": [(50, -10, 4.0)],
     "sanjuansaurus": [(128, -2.5, 5.4)],
+    # los mismos lugares que la población de la web
+    "exaeretodon": [(-40, None, 1.0), (-44, None, 2.2), (-37, None, 0.4), (20, 12, 1.6), (23, 10, 2.0)],
+    "saurosuchus": [(90, -25, 0.9)],
 }
 
 

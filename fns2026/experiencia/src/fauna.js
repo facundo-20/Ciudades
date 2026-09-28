@@ -35,8 +35,26 @@ export const ESPECIES = {
     dorso: 0x5b5043, vientre: 0x8e8068, velocidad: 0.9, zona: ['rio'], cuello: 0.3, cola: 0.35, cabeza: 0.4, pico: true,
   },
   ischigualastia: {
-    nombre: 'Ischigualastia jenseni', tipo: 'cuadrupedo', largo: 3.0, cadera: 0.8,
+    // 3,5 m y 1-2 t; sin colmillos (sólo procesos caniniformes óseos) — Cox 1962
+    nombre: 'Ischigualastia jenseni', tipo: 'cuadrupedo', largo: 3.5, cadera: 0.9,
     dorso: 0x6a5f55, vientre: 0x958878, velocidad: 0.8, zona: ['llanura'], cuello: 0.35, cola: 0.18, cabeza: 0.55, pico: true,
+  },
+  sanjuansaurus: {
+    // herrerasáurido de ~3 m, de la base de la formación (Alcober y Martínez 2010)
+    nombre: 'Sanjuansaurus gordilloi', tipo: 'bipedo', largo: 3.0, cadera: 0.85,
+    dorso: 0x503a2a, vientre: 0x8c7456, velocidad: 2.4, zona: ['llanura'], cuello: 0.7, cola: 0.5, cabeza: 0.4,
+  },
+  saurosuchus: {
+    // el depredador más grande de Ischigualasto NO era un dinosaurio: un pseudosuquio (línea
+    // de los cocodrilos) de 5,5 a 7 m, con las patas rectas debajo del cuerpo
+    nombre: 'Saurosuchus galilei', tipo: 'cuadrupedo', largo: 6.0, cadera: 1.2,
+    dorso: 0x3f3a30, vientre: 0x7d7260, velocidad: 1.6, zona: ['llanura', 'rio'], cuello: 0.45, cola: 0.5, cabeza: 0.7,
+  },
+  exaeretodon: {
+    // cinodonte traversodóntido (pariente de los mamíferos), de hasta 1,8 m; con Hyperodapedon,
+    // lo más abundante de la formación
+    nombre: 'Exaeretodon argentinus', tipo: 'cuadrupedo', largo: 1.8, cadera: 0.45,
+    dorso: 0x5c4a3a, vientre: 0x9a8468, velocidad: 1.1, zona: ['rio', 'bosque'], cuello: 0.3, cola: 0.2, cabeza: 0.45,
   },
 };
 
@@ -316,6 +334,10 @@ const POBLACION = [
   ['eodromaeus', 3, 50, -10],
   ['panphagia', 3, 45, 15],
   ['ischigualastia', 5, 105, -5],
+  ['exaeretodon', 6, -40, null],
+  ['exaeretodon', 3, 20, 12],
+  ['sanjuansaurus', 1, 125, 0],
+  ['saurosuchus', 1, 90, -25],
 ];
 
 export async function crearFauna(escena, base = 'modelos/') {
