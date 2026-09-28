@@ -590,13 +590,9 @@ def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False):
     bg = nt.nodes["Background"]
     bg.inputs["Strength"].default_value = 0.12 * (1 - 0.6 * ceniza)
     nt.links.new(sky.outputs["Color"], bg.inputs["Color"])
-    if volumetrica and bruma > 0:
-        # niebla en el aire: los rayos de sol entre las copas. Es lo más caro del render.
-        pv = nodo(nt, "ShaderNodeVolumePrincipled")
-        pv.inputs["Density"].default_value = bruma
-        pv.inputs["Color"].default_value = (0.85, 0.82, 0.78, 1) if not ceniza else (0.55, 0.52, 0.5, 1)
-        pv.inputs["Anisotropy"].default_value = 0.45
-        nt.links.new(pv.outputs[0], nt.nodes["World Output"].inputs["Volume"])
+    # La niebla NO va en el mundo: el volumen del mundo es infinito y en kilómetros de horizonte
+    # se come toda la luz del cielo y del sol (en calidad media salían 5 de 6 capítulos negros,
+    # 28/09). Va en una caja local alrededor de la escena: ver bruma_local().
     # el sol como lámpara (sombras nítidas con penumbra real) alineado con el del cielo
     sol = bpy.data.objects.new("sol", bpy.data.lights.new("sol", "SUN"))
     # al mediodía en el desierto el sol manda sobre el relleno azul del cielo: con 3 la arcilla
@@ -606,6 +602,29 @@ def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False):
     sol.data.color = (1.0, 0.92, 0.82) if elevacion > 15 else (1.0, 0.72, 0.48)
     sol.rotation_euler = (math.radians(90 - elevacion), 0, math.radians(azimut + 90))
     esc.collection.objects.link(sol)
+
+
+def bruma_local(centro, densidad, ceniza):
+    """Niebla en el aire sólo alrededor de la escena (700 × 700 × 80 m): da los rayos de sol entre
+    las copas y la profundidad sin apagar el cielo lejano."""
+    if densidad <= 0:
+        return None
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(centro.x, centro.y, 38))
+    caja = bpy.context.object
+    caja.name = "bruma_local"
+    caja.scale = (700, 700, 80)
+    m = bpy.data.materials.new("bruma")
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.remove(nt.nodes["Principled BSDF"])
+    pv = nodo(nt, "ShaderNodeVolumePrincipled")
+    pv.inputs["Density"].default_value = densidad
+    pv.inputs["Color"].default_value = (0.85, 0.82, 0.78, 1) if not ceniza else (0.55, 0.52, 0.5, 1)
+    pv.inputs["Anisotropy"].default_value = 0.45
+    nt.links.new(pv.outputs[0], nt.nodes["Material Output"].inputs["Volume"])
+    caja.data.materials.append(m)
+    caja.visible_shadow = True
+    return caja
 
 
 def volcan(actividad):
@@ -1047,6 +1066,8 @@ def hacer_capitulo(clave, a):
         barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]))
     horizonte(cx, czw, t.data.materials[0])
     cielo(*cap["sol"], cap["bruma"], volumetrica, cap["ceniza"], limpio=hoy)
+    if volumetrica:
+        bruma_local(centro, cap["bruma"], cap["ceniza"])
     volcan(cap["volcan"])
 
     moldes = {}
