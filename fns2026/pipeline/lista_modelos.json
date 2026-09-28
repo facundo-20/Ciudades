@@ -117,6 +117,34 @@
       "poligonos": 120000,
       "prompt": "El Submarino rock formation of Ischigualasto Argentina, long eroded grey-beige sandstone ridge shaped like a submarine hull with a vertical conning-tower-like rock on top, wind erosion grooves, layered strata, photorealistic geology",
       "existe_en_mac": "~/Documents/Ischigualasto/assets/valle_luna_result.glb (Hongo + Submarino juntos)"
+    },
+    {
+      "nombre": "dicroidium_meshy",
+      "destino": "flora",
+      "largo_m": 6.0,
+      "poligonos": 150000,
+      "prompt": "Dicroidium seed fern tree from the Triassic of Gondwana, straight trunk about 6 meters tall, crown of forked Y-shaped fronds with many small rounded leaflets, photorealistic botanical reconstruction"
+    },
+    {
+      "nombre": "neocalamites_meshy",
+      "destino": "flora",
+      "largo_m": 2.5,
+      "poligonos": 80000,
+      "prompt": "clump of Neocalamites giant horsetails, Triassic plant, jointed green-brown segmented stems 2.5 meters tall with whorls of thin needle leaves at each node, photorealistic botanical reconstruction"
+    },
+    {
+      "nombre": "helecho_meshy",
+      "destino": "flora",
+      "largo_m": 1.6,
+      "poligonos": 60000,
+      "prompt": "Triassic fern Cladophlebis, rosette of arching pinnate fronds, low ground plant, photorealistic botanical reconstruction"
+    },
+    {
+      "nombre": "conifera_meshy",
+      "destino": "flora",
+      "largo_m": 12.0,
+      "poligonos": 150000,
+      "prompt": "Triassic voltzialean conifer tree 12 meters tall, straight trunk, tiered horizontal branches with dense scale-like needle foliage, photorealistic botanical reconstruction"
     }
   ]
 }
