@@ -46,11 +46,12 @@
     },
     {
       "nombre": "hyperodapedon",
-      "prompt": "Hyperodapedon sanjuanensis, Triassic rhynchosaur (archosauromorph reptile, not a dinosaur), quadrupedal with semi-sprawling limbs, broad triangular skull with a hooked parrot-like beak, stocky low body, medium tail, scaly skin, 1.3 meters long",
+      "prompt": "Hyperodapedon sanjuanensis, Late Triassic rhynchosaur, a stocky herbivorous reptile that is NOT a dinosaur, built low to the ground like a large tuatara or monitor lizard, barrel-shaped body, short thick sprawling legs bent outward at the elbows and knees, very broad triangular skull much wider at the back than long, downturned hooked beak-like snout, short thick neck, medium tapering tail, belly close to the ground, scaly reptilian skin, 1.3 meters long, walking on all four legs",
       "largo_m": 1.3,
-      "alto_m": 0.4,
+      "alto_m": 0.35,
       "rig": true,
-      "destino": "dinosaurio"
+      "destino": "dinosaurio",
+      "_fuente": "Gentil et al. 2022, Anat. Rec. (holotipo); rincosaurio: cráneo ancho, patas semiextendidas"
     },
     {
       "nombre": "ischigualastia",

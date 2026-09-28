@@ -1,6 +1,8 @@
 {
- "vistas": "01a0e619-ba2a-72d1-a512-8620eef015cd",
- "multi_3d": "01a0e61a-82b7-7086-b47c-079725174576",
- "texto_borrador": "01a0e61b-2713-74b5-b03e-6054904286e9",
- "texto_refinado": "01a0e61c-301c-744d-8ac4-1c3f580add11"
+ "_descartado_28_09_parecia_dinosaurio": {
+  "vistas": "01a0e619-ba2a-72d1-a512-8620eef015cd",
+  "multi_3d": "01a0e61a-82b7-7086-b47c-079725174576",
+  "texto_borrador": "01a0e61b-2713-74b5-b03e-6054904286e9",
+  "texto_refinado": "01a0e61c-301c-744d-8ac4-1c3f580add11"
+ }
 }
