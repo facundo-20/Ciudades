@@ -123,7 +123,7 @@ MODO = {"hoy": False}
 def altura_hoy(x, zw):
     """Valle de la Luna hoy: lomas bajas y redondeadas de arcilla gris (la Formación
     Ischigualasto erosionada), sin el río ni el cordón del Triásico."""
-    lomas = max(0.0, fbm2(x * 0.035 + 11, zw * 0.035, 4)) ** 1.6 * 9
+    lomas = max(0.0, fbm2(x * 0.04 + 11, zw * 0.04, 4)) ** 1.4 * 14
     return fbm2(x * 0.012, zw * 0.012, 4) * 2.5 + lomas
 
 
@@ -144,7 +144,8 @@ def web_a_blender(p):
 
 # los capítulos: mismas cámaras que la web + la luz de cada momento
 CAPITULOS = {
-    "titulo":  dict(desde=(-120, 26, 60), hasta=(-95, 14, 40), mira=(-60, 0, 0), sol=(6, 250), bruma=0.0025, ceniza=0, volcan=0.2),
+    # título: amanecer rasante; con sol a 6° la imagen quedaba casi negra → más exposición
+    "titulo":  dict(desde=(-120, 26, 60), hasta=(-95, 14, 40), mira=(-60, 0, 0), sol=(9, 250), bruma=0.0025, ceniza=0, volcan=0.2, exposicion=0.1, foco=60),
     "rio":     dict(desde=(-95, 3.2, 26), hasta=(-30, 2.6, 20), mira=(0, 0, -10), sol=(22, 230), bruma=0.0018, ceniza=0, volcan=0.3),
     "bosque":  dict(desde=(8, 2.2, 12), hasta=(62, 2.2, -4), mira=(120, 1, -20), sol=(40, 200), bruma=0.0035, ceniza=0, volcan=0.4),
     # llanura: la cámara a la altura de los ojos junto a la manada, mirando por la quebrada
@@ -153,7 +154,7 @@ CAPITULOS = {
     "ceniza":  dict(desde=(128, 3.4, 4), hasta=(118, 5, 16), mira=(104, 0, -4), sol=(14, 170), bruma=0.012, ceniza=1, volcan=1),
     # hoy: parado en la arcilla gris cuarteada, las barrancas rojas al fondo, sol alto y
     # cielo limpio de San Juan (sin bruma: el aire del desierto es seco y transparente)
-    "hoy":     dict(desde=(118, 2.2, 16), hasta=(100, 2.6, 22), mira=(-120, 25, 40), sol=(62, 120), bruma=0.0, ceniza=0, volcan=0, hoy=True, foco=40, f=8),
+    "hoy":     dict(desde=(118, 2.2, 16), hasta=(100, 2.6, 22), mira=(-120, 25, 40), sol=(62, 120), bruma=0.0, ceniza=0, volcan=0, hoy=True, foco=40, f=8, exposicion=-1.2),
 }
 
 ESPECIES_LUGARES = {
@@ -322,9 +323,9 @@ def material_suelo(hoy=False, ceniza=0.0):
     if hoy:
         # Valle de la Luna: arcilla gris clara cuarteada. Las grietas se ven por la sombra de
         # adentro (color), no sólo por el relieve: con sol alto el bump solo casi no se nota.
-        suelo = mezcla(0.95, suelo, (0.50, 0.47, 0.43))
+        suelo = mezcla(0.95, suelo, (0.50, 0.43, 0.34))
         manchas = ruido(0.05, 5)
-        suelo = mezcla(sal(manchas, "Factor", "Fac"), (0.40, 0.42, 0.38), (0.56, 0.49, 0.40))   # gris verdoso ↔ ocre
+        suelo = mezcla(sal(manchas, "Factor", "Fac"), (0.42, 0.40, 0.34), (0.58, 0.46, 0.34))   # gris verdoso ↔ ocre
         suelo = mezcla(sal(micro, "Factor", "Fac"), suelo, (0.44, 0.41, 0.37), "MULTIPLY")
         placas = nodo(nt, "ShaderNodeTexVoronoi", feature="DISTANCE_TO_EDGE")
         placas.inputs["Scale"].default_value = 2.4
@@ -472,7 +473,7 @@ def material_estratos():
     l.new(sep.outputs["Z"], suma.inputs[2])
     capas = nodo(nt, "ShaderNodeTexNoise")          # 1D en altura: bandas de espesor irregular
     capas.noise_dimensions = "1D"
-    capas.inputs["Scale"].default_value = 0.09
+    capas.inputs["Scale"].default_value = 0.045       # capas de 2 a 8 m, como en el paredón real
     capas.inputs["Detail"].default_value = 6
     capas.inputs["Roughness"].default_value = 0.6
     l.new(suma.outputs[0], capas.inputs["W"])
@@ -496,7 +497,18 @@ def material_estratos():
     mx.inputs["Factor"].default_value = 0.35
     l.new(rampa.outputs["Color"], mx.inputs["A"])
     l.new(sal(sucio, "Color"), mx.inputs["B"])
-    l.new(mx.outputs["Result"], bs.inputs["Base Color"])
+    # en lo plano (talud, cima) no se ven capas sino el detrito que cae de la pared
+    geo = nodo(nt, "ShaderNodeNewGeometry")
+    sepn = nodo(nt, "ShaderNodeSeparateXYZ")
+    l.new(geo.outputs["Normal"], sepn.inputs[0])
+    plano = nodo(nt, "ShaderNodeMapRange")
+    plano.inputs["From Min"].default_value, plano.inputs["From Max"].default_value = 0.72, 0.9
+    l.new(sepn.outputs["Z"], plano.inputs["Value"])
+    detrito = nodo(nt, "ShaderNodeMix", data_type="RGBA")
+    l.new(plano.outputs[0], detrito.inputs["Factor"])
+    l.new(mx.outputs["Result"], detrito.inputs["A"])
+    detrito.inputs["B"].default_value = (0.36, 0.17, 0.10, 1)
+    l.new(detrito.outputs["Result"], bs.inputs["Base Color"])
     bs.inputs["Roughness"].default_value = 0.92
     bump = nodo(nt, "ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.6
@@ -517,7 +529,7 @@ def barrancas(ojo, mira, distancia=230.0, abertura=80.0):
     for c in range(columnas):
         a = rumbo + math.radians(-abertura + 2 * abertura * c / (columnas - 1))
         carcava = abs(fbm2(c * 0.09, 3.3, 3)) * 2.2
-        alto = 38 + fbm2(c * 0.025, 9.1, 3) * 26
+        alto = 34 + fbm2(c * 0.012, 9.1, 4) * 48       # mesetas altas y bajas, no un muro parejo
         r0 = distancia + fbm2(c * 0.02, 1.7, 3) * 60 + carcava * 14
         col = []
         for dr, fh in perfil:
@@ -583,7 +595,9 @@ def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False):
         nt.links.new(pv.outputs[0], nt.nodes["World Output"].inputs["Volume"])
     # el sol como lámpara (sombras nítidas con penumbra real) alineado con el del cielo
     sol = bpy.data.objects.new("sol", bpy.data.lights.new("sol", "SUN"))
-    sol.data.energy = 3.0 * (1 - 0.65 * ceniza)
+    # al mediodía en el desierto el sol manda sobre el relleno azul del cielo: con 3 la arcilla
+    # clara salía gris azulada y oscura (medido: RGB 84,89,96 en la prueba del 28/09)
+    sol.data.energy = 6.0 if limpio else 3.0 * (1 - 0.65 * ceniza)
     sol.data.angle = math.radians(0.545)
     sol.data.color = (1.0, 0.92, 0.82) if elevacion > 15 else (1.0, 0.72, 0.48)
     sol.rotation_euler = (math.radians(90 - elevacion), 0, math.radians(azimut + 90))
@@ -627,10 +641,13 @@ def volcan(actividad):
                                         location=(pos.x + 60, pos.y, pos.z + 262 + 550))
         col = bpy.context.object
         col.name = "columna_ceniza"
-        # el viento de altura inclina la pluma: la parte de arriba se corre a sotavento
-        for v in col.data.vertices:
-            k = (v.co.z + 550) / 1100
-            v.co.x += 380 * k * k
+        # el viento de altura inclina la pluma. Se inclina el objeto entero y no los vértices:
+        # las coordenadas "Generated" del shader salen de la caja del objeto, y al correr los
+        # vértices el eje de la pluma dejaba de estar en el centro y la base quedaba vacía.
+        inclinacion = math.radians(16)
+        col.rotation_euler.y = inclinacion
+        col.location.x += 550 * math.sin(inclinacion)
+        col.location.z -= 550 * (1 - math.cos(inclinacion)) + 25
         mv = bpy.data.materials.new("humo_volcan")
         mv.use_nodes = True
         nt = mv.node_tree
@@ -751,15 +768,19 @@ def arbol_gn(molde):
     return t
 
 
+# hoy: nada de plantas del Triásico, sólo piedras sueltas y concreciones sobre la arcilla
+REGLAS_HOY = [
+    ("roca_arenisca", 1.2, lambda x, z: True, (0.15, 0.6)),
+]
+
+
 def sembrar(moldes, centro_x, centro_zw, lado, densidad_extra=1.0, hoy=False):
     """Puntos por especie (con reglas de hábitat) → un objeto de puntos con Geometry Nodes."""
-    if hoy:
-        return 0
     azar = random.Random(231)
     total = 0
     area_ha = (lado * lado) / 10000.0
     puntos = {}
-    for nombre, por_100m2, regla, (e0, e1) in REGLAS:
+    for nombre, por_100m2, regla, (e0, e1) in (REGLAS_HOY if hoy else REGLAS):
         if nombre not in moldes:
             continue
         objetivo = int(por_100m2 * area_ha * 100 * densidad_extra)
@@ -894,7 +915,7 @@ def camara(cap, cuadros, animar):
     return cam
 
 
-def configurar_render(ancho, alto, muestras):
+def configurar_render(ancho, alto, muestras, exposicion=None):
     esc = bpy.context.scene
     esc.render.engine = "CYCLES"
     gpu = os.environ.get("FNS_GPU")
@@ -921,7 +942,7 @@ def configurar_render(ancho, alto, muestras):
         esc.view_settings.look = "AgX - Medium High Contrast"
     except TypeError:
         pass
-    esc.view_settings.exposure = -0.8
+    esc.view_settings.exposure = -0.8 if exposicion is None else exposicion
     esc.render.film_transparent = False
     vl = esc.view_layers[0]
     vl.use_pass_mist = True
@@ -985,10 +1006,8 @@ def hacer_capitulo(clave, a):
     if hay_rio(cx) > 0.2 and not hoy:
         agua(cx + 40, czw, lado)
     if hoy:
-        estratos = barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]))
-        horizonte(cx, czw, estratos.data.materials[0])
-    else:
-        horizonte(cx, czw, t.data.materials[0])
+        barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]))
+    horizonte(cx, czw, t.data.materials[0])
     cielo(*cap["sol"], cap["bruma"], volumetrica, cap["ceniza"], limpio=hoy)
     volcan(cap["volcan"])
 
@@ -1004,7 +1023,7 @@ def hacer_capitulo(clave, a):
 
     cuadros = int(a.segundos * 30)
     camara(cap, cuadros, a.animar)
-    configurar_render(ancho, alto, muestras)
+    configurar_render(ancho, alto, muestras, cap.get("exposicion"))
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(carpeta, f"{clave}.blend"))
     esc = bpy.context.scene
     esc.render.image_settings.file_format = "PNG"
