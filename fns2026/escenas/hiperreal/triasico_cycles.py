@@ -145,7 +145,9 @@ def web_a_blender(p):
 # los capítulos: mismas cámaras que la web + la luz de cada momento
 CAPITULOS = {
     # título: amanecer rasante; con sol a 6° la imagen quedaba casi negra → más exposición
-    "titulo":  dict(desde=(-120, 26, 60), hasta=(-95, 14, 40), mira=(-60, 0, 0), sol=(9, 250), bruma=0.0025, ceniza=0, volcan=0.2, exposicion=0.1, foco=60),
+    # título: amanecer rasante sobre el valle. La cámara mira casi al horizonte (antes miraba al
+    # suelo y no había cielo) para que se vea el cielo encendido sobre el bosque y el río.
+    "titulo":  dict(desde=(-120, 26, 60), hasta=(-95, 14, 40), mira=(-20, 16, -30), sol=(9, 250), bruma=0.0025, ceniza=0, volcan=0.2, exposicion=0.5, foco=60),
     "rio":     dict(desde=(-95, 3.2, 26), hasta=(-30, 2.6, 20), mira=(0, 0, -10), sol=(22, 230), bruma=0.0018, ceniza=0, volcan=0.3),
     "bosque":  dict(desde=(8, 2.2, 12), hasta=(62, 2.2, -4), mira=(120, 1, -20), sol=(40, 200), bruma=0.0035, ceniza=0, volcan=0.4),
     # llanura: la cámara a la altura de los ojos junto a la manada, mirando por la quebrada
@@ -257,6 +259,9 @@ def horizonte(cx, czw, material):
             a = 2 * math.pi * k / 128
             x, zw = cx + r * math.cos(a), czw + r * math.sin(a)
             h = altura(x, zw) if r < 700 else 18 + fbm2(x * 0.004, zw * 0.004, 3) * 60
+            # el anillo lejano no lleva río: queda arriba del agua, así el borde recto del plano
+            # de agua no aparece como un rectángulo claro en el horizonte (se veía en el título)
+            h = max(h, NIVEL_AGUA + 0.3)
             fila.append(bm.verts.new((x, -zw, h - (0.8 if r == 100 else 0))))
         anillos.append(fila)
     for i in range(len(anillos) - 1):
