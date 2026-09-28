@@ -19,7 +19,9 @@ const q = new URLSearchParams(location.search);
 const CALIDAD = Math.min(1, Math.max(0.2, parseFloat(q.get('calidad') || '1')));
 const AUTO = q.get('auto') !== '0';
 if (q.get('ui') === '0') document.body.classList.add('sin-ui');
-const WS = q.get('ws') ? `ws://${q.get('ws')}` : `ws://${location.hostname || 'localhost'}:8765`;
+// puente de sensores: sólo en la red del stand (localhost o IP privada) o si se pide con ?ws=
+const RED_LOCAL = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(location.hostname);
+const WS = q.get('ws') ? `ws://${q.get('ws')}` : RED_LOCAL ? `ws://${location.hostname}:8765` : null;
 
 const $ = (s) => document.querySelector(s);
 const cargando = $('#cargando');

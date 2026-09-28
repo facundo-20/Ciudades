@@ -229,7 +229,8 @@ export async function crearFlora(escena, calidad, base = 'assets/') {
   const nombres = [...new Set(REGLAS.map((r) => r[0]))];
   await Promise.all(nombres.map(async (n) => {
     try {
-      const gltf = await cargador.loadAsync(`${base}${n}.glb`);
+      // window.__FLORA: los GLB embebidos como data: (versión publicada como página, sin archivos sueltos)
+      const gltf = await cargador.loadAsync(globalThis.__FLORA?.[n] ?? `${base}${n}.glb`);
       let malla = null;
       gltf.scene.traverse((o) => { if (o.isMesh && !malla) malla = o; });
       moldes[n] = { geometria: malla.geometry, material: malla.material };
