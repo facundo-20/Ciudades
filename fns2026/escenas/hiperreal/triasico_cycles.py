@@ -775,11 +775,27 @@ def arbol_gn(molde):
 # hoy: nada de plantas del Triásico, sólo piedras sueltas y concreciones sobre la arcilla
 # el recorrido de la cámara (x, z de la web) queda sin árboles: si no, una conífera de Meshy
 # de 12 m pegada al lente tapa todo el cuadro (pasó en el bosque el 28/09)
-CAMINO = {"desde": None, "hasta": None}
+CAMINO = {"desde": None, "hasta": None, "cono": None}
 PLANTAS_BAJAS = ("helecho",)
 
 
+def en_el_cono(x, zw):
+    """Cono de vista libre (la llanura mira al volcán por encima de la manada: ningún árbol alto
+    en ±14° de esa línea hasta 220 m)."""
+    if not CAMINO["cono"]:
+        return False
+    ox, oz, tx, tz = CAMINO["cono"]
+    d = math.hypot(x - ox, zw - oz)
+    if d > 220 or d < 1:
+        return False
+    a = math.atan2(zw - oz, x - ox) - math.atan2(tz - oz, tx - ox)
+    a = (a + math.pi) % (2 * math.pi) - math.pi
+    return abs(a) < math.radians(14)
+
+
 def cerca_del_camino(x, zw, radio=5.0):
+    if en_el_cono(x, zw):
+        return True
     if not CAMINO["desde"]:
         return False
     ax, az = CAMINO["desde"]
@@ -1041,6 +1057,8 @@ def hacer_capitulo(clave, a):
     densidad = 0.35 if a.calidad == "prueba" else 1.0
     CAMINO["desde"] = (cap["desde"][0], cap["desde"][2])
     CAMINO["hasta"] = (cap["hasta"][0], cap["hasta"][2])
+    medio = web_a_blender(cap["desde"]).lerp(web_a_blender(cap["hasta"]), 0.5)
+    CAMINO["cono"] = (medio.x, -medio.y, cap["mira"][0], cap["mira"][2]) if clave == "llanura" else None
     n_plantas = sembrar(moldes, cx + 40, czw, lado * 0.8, densidad, hoy)
     # hoy no hay animales vivos: sólo el paisaje (los fósiles los pone la capa interactiva)
     puestos, faltan = (0, []) if hoy else poner_dinosaurios(os.path.abspath(a.modelos), cx)
