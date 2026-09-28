@@ -1,0 +1,23 @@
+{
+  "name": "triasico-san-juan",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Experiencia inmersiva e interactiva: el Triásico de Ischigualasto, San Juan (FNS 2026)",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "puente": "node server/puente.mjs",
+    "simular": "node server/puente.mjs --simular",
+    "probar": "node server/probar.mjs"
+  },
+  "dependencies": {
+    "three": "^0.170.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0",
+    "vite": "^6.0.0"
+  }
+}

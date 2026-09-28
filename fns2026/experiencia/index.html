@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Triásico en San Juan</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%23f0a24a%22/%3E%3C/svg%3E" />
+  <meta name="description" content="Experiencia inmersiva: Ischigualasto hace 231 millones de años. Fiesta Nacional del Sol 2026 · Parque Triásico." />
+</head>
+<body data-capitulo="titulo">
+  <canvas id="lienzo"></canvas>
+
+  <div id="cargando">
+    <h1>ISCHIGUALASTO</h1>
+    <p>Preparando el Triásico…</p>
+  </div>
+
+  <div id="portada" class="hud">
+    <div class="fiesta">FIESTA NACIONAL DEL SOL · PARQUE TRIÁSICO</div>
+    <h1>ISCHIGUALASTO</h1>
+    <p>San Juan, hace 231 millones de años · El amanecer de los dinosaurios</p>
+  </div>
+
+  <header id="encabezado" class="hud">
+    <div class="fiesta">TRIÁSICO EN SAN JUAN</div>
+    <h1 id="cap-titulo"></h1>
+    <p id="cap-sub"></p>
+  </header>
+
+  <aside id="ficha" class="hud" aria-live="polite">
+    <h2></h2>
+    <p class="dato"></p>
+    <p class="texto"></p>
+  </aside>
+
+  <footer id="pie" class="hud">
+    <span id="sensor" title="sensor"></span>
+    <nav id="puntos" aria-label="Capítulos"></nav>
+    <span id="ayuda">Tocá un animal para acariciarlo · Tocá el suelo · Mantené apretado para avanzar</span>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
