@@ -44,8 +44,11 @@ PEDIDOS = {
 # Estilo común a todo el stand. Se agrega a cada prompt para que los 7 dinosaurios
 # parezcan de la misma colección y no de siete artistas distintos.
 ESTILO = {
+    # Ischigualasto (Carniano, ~231 Ma): no hay evidencia de plumas en estos animales, y los
+    # generadores de imagen las agregan solos si no se les dice; por eso va explícito.
     "dinosaurio": ("scientifically accurate Late Triassic reptile, museum-quality paleoart, "
-                   "neutral studio light, plain background, full body, no text, no watermark"),
+                   "scaly reptilian skin, no feathers, no fur, natural muted earth colors, "
+                   "neutral studio light, plain background, full body side view, no text, no watermark"),
     "hueso": ("real fossil photograph look, Ischigualasto red and grey-green sandstone, "
               "soft overhead light, no text, no watermark"),
     "maqueta": ("miniature diorama, handcrafted scale model look, soft studio light, no text"),
@@ -219,16 +222,70 @@ def pedido_rig(id_modelo, item):
 # Un ítem de la lista, de punta a punta
 # ---------------------------------------------------------------------------
 
+def _diario(carpeta):
+    """Los id de tarea de Meshy de este modelo. Se guardan ANTES de esperar: si se corta la
+    red, se bloquea la descarga o se reinicia la máquina, la próxima corrida retoma la
+    misma tarea en vez de pagar otra."""
+    ruta = os.path.join(carpeta, "tareas.json")
+    datos = json.load(open(ruta, encoding="utf-8")) if os.path.exists(ruta) else {}
+    return ruta, datos
+
+
+def paso(carpeta, clave, tipo, cuerpo):
+    ruta, datos = _diario(carpeta)
+    id_t = datos.get(clave)
+    if id_t:
+        r = _llamar("GET", _url(tipo, id_t))
+        if r.get("status") not in ("FAILED", "CANCELED", "EXPIRED"):
+            print(f"   retomo {tipo} {id_t[:8]}… (ya pagada)")
+            return id_t, esperar(tipo, id_t)
+    id_t = crear(tipo, cuerpo)
+    datos[clave] = id_t
+    with open(ruta, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=1)
+    return id_t, esperar(tipo, id_t)
+
+
+def vistas_ya_hechas(prompt):
+    """Busca en la cuenta una tarea de vistas con el mismo prompt que ya haya salido bien
+    (pasó el 28/09: las vistas se generaron pero la bajada de imágenes estaba bloqueada)."""
+    try:
+        r = _llamar("GET", _url("vistas") + "?page_size=50&sort_by=-created_at")
+    except SystemExit:
+        return None
+    for t in (r if isinstance(r, list) else r.get("result", [])):
+        if t.get("status") == "SUCCEEDED" and t.get("prompt") == prompt and t.get("image_urls"):
+            return t
+    return None
+
+
+def bajar_opcional(url, destino):
+    """Las vistas bajadas son sólo para mirarlas; Meshy trabaja con sus propias URLs."""
+    try:
+        return bajar(url, destino)
+    except Exception as e:  # noqa: BLE001
+        print(f"   (no pude bajar {os.path.basename(destino)}: {e}; sigo igual)")
+        return None
+
+
 def por_vistas(item, carpeta):
     """Camino A: vistas multi-ángulo → multi-imagen a 3D. Da mejor geometría."""
     if item.get("vistas"):
         urls = item["vistas"]
     else:
-        id_v = crear("vistas", pedido_vistas(item))
-        r = esperar("vistas", id_v)
+        cuerpo_v = pedido_vistas(item)
+        ruta, datos = _diario(carpeta)
+        previa = None if datos.get("vistas") else vistas_ya_hechas(cuerpo_v["prompt"])
+        if previa:
+            print(f"   reuso vistas ya generadas {previa['id'][:8]}…")
+            datos["vistas"] = previa["id"]
+            with open(ruta, "w", encoding="utf-8") as f:
+                json.dump(datos, f, indent=1)
+        _, r = paso(carpeta, "vistas", "vistas", cuerpo_v)
         urls = r.get("image_urls") or []
         for i, u in enumerate(urls):
-            bajar(u, os.path.join(carpeta, f"vista_{i}.png"))
+            if not os.path.exists(os.path.join(carpeta, f"vista_{i}.png")):
+                bajar_opcional(u, os.path.join(carpeta, f"vista_{i}.png"))
     if not urls:
         raise SystemExit("Meshy no devolvió vistas.")
     tipo = "multi_3d" if len(urls) > 1 else "imagen_3d"
@@ -236,17 +293,15 @@ def por_vistas(item, carpeta):
     if tipo == "imagen_3d":
         cuerpo = {**cuerpo, "image_url": urls[0]}
         cuerpo.pop("image_urls")
-    id_m = crear(tipo, cuerpo)
-    return id_m, esperar(tipo, id_m)
+    return paso(carpeta, tipo, tipo, cuerpo)
 
 
-def por_texto(item):
+def por_texto(item, carpeta):
     """Camino B: texto a 3D, borrador y después refinado con PBR. Es el endpoint más
     viejo y estable de Meshy; se usa si el de vistas no está en el plan o rechaza el pedido."""
-    id_p = crear("texto_3d", pedido_texto_3d(item))
-    esperar("texto_3d", id_p)
-    id_r = crear("texto_3d", {"mode": "refine", "preview_task_id": id_p, "enable_pbr": True})
-    return id_r, esperar("texto_3d", id_r)
+    id_p, _ = paso(carpeta, "texto_borrador", "texto_3d", pedido_texto_3d(item))
+    return paso(carpeta, "texto_refinado", "texto_3d",
+                {"mode": "refine", "preview_task_id": id_p, "enable_pbr": True})
 
 
 def hacer(item, salida):
@@ -257,7 +312,7 @@ def hacer(item, salida):
 
     camino = os.environ.get("MESHY_CAMINO", "auto")      # auto | vistas | texto
     if camino == "texto":
-        id_m, r = por_texto(item)
+        id_m, r = por_texto(item, carpeta)
     else:
         try:
             id_m, r = por_vistas(item, carpeta)
@@ -265,27 +320,39 @@ def hacer(item, salida):
             if camino == "vistas" or item.get("vistas"):
                 raise
             print(f"   las vistas fallaron, sigo con texto a 3D:\n   {str(e)[:400]}")
-            id_m, r = por_texto(item)
+            id_m, r = por_texto(item, carpeta)
 
     urls_modelo = r.get("model_urls", {})
+    if r.get("thumbnail_url"):
+        bajar_opcional(r["thumbnail_url"], os.path.join(carpeta, f"{nombre}_meshy_vista.png"))
     bajados = 0
     for fmt in ("glb", "fbx"):
         if urls_modelo.get(fmt):
-            bajar(urls_modelo[fmt], os.path.join(carpeta, f"{nombre}_meshy.{fmt}"))
+            try:
+                bajar(urls_modelo[fmt], os.path.join(carpeta, f"{nombre}_meshy.{fmt}"))
+            except urllib.error.URLError as e:
+                raise SystemExit(f"{nombre}: el modelo está hecho en Meshy (tarea {id_m}) pero no se pudo "
+                                 f"bajar de {urls_modelo[fmt].split('/')[2]}: {e}. Habilitá ese dominio en "
+                                 f"la red del entorno y volvé a correr: retoma sin gastar.")
             bajados += 1
     if not bajados:
         raise SystemExit(f"{nombre}: la tarea terminó pero no trae model_urls: {list(r)}")
 
     # 3) rig + animaciones básicas, sólo para lo que se mueve (dinosaurios, no huesos)
     if item.get("rig"):
-        id_r = crear("rig", pedido_rig(id_m, item))
-        r = esperar("rig", id_r)
+        # El rig de Meshy está pensado para bípedos; con los cuadrúpedos (rincosaurio,
+        # dicinodonte) puede fallar. El modelo ya está bajado, así que eso no lo invalida.
+        try:
+            _, r = paso(carpeta, "rig", "rig", pedido_rig(id_m, item))
+        except SystemExit as e:
+            print(f"   el rig falló, queda el modelo sin esqueleto: {str(e)[:300]}")
+            return carpeta
         res = r.get("result", {})
         if res.get("rigged_character_fbx_url"):
             bajar(res["rigged_character_fbx_url"], os.path.join(carpeta, f"{nombre}_rig.fbx"))
         for anim, url in (res.get("basic_animations") or {}).items():
             if anim.endswith("_fbx_url") and url:
-                bajar(url, os.path.join(carpeta, f"{nombre}_{anim.replace('_fbx_url', '')}.fbx"))
+                bajar_opcional(url, os.path.join(carpeta, f"{nombre}_{anim.replace('_fbx_url', '')}.fbx"))
 
     return carpeta
 

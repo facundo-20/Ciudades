@@ -21,7 +21,7 @@
     },
     {
       "nombre": "panphagia",
-      "prompt": "Panphagia protos, small early sauropodomorph dinosaur, 1.3 meters long, long neck, bipedal, omnivore",
+      "prompt": "Panphagia protos, small early sauropodomorph dinosaur, 1.3 meters long, small head, moderately long neck, bipedal with long hind legs and short grasping arms, long tail, scaly reptilian skin",
       "largo_m": 1.3,
       "alto_m": 0.4,
       "rig": true,
@@ -29,7 +29,7 @@
     },
     {
       "nombre": "sanjuansaurus",
-      "prompt": "Sanjuansaurus gordilloi, bipedal predatory herrerasaurid dinosaur, 3 meters long",
+      "prompt": "Sanjuansaurus gordilloi, bipedal predatory herrerasaurid dinosaur, 3 meters long, long narrow skull with serrated teeth, strong hind legs, short arms with three clawed fingers, long stiff tail, scaly reptilian skin",
       "largo_m": 3.0,
       "alto_m": 0.9,
       "rig": true,
@@ -46,7 +46,7 @@
     },
     {
       "nombre": "hyperodapedon",
-      "prompt": "Hyperodapedon, Triassic rhynchosaur, quadrupedal, beaked skull, stocky body, 1.3 meters long",
+      "prompt": "Hyperodapedon sanjuanensis, Triassic rhynchosaur (archosauromorph reptile, not a dinosaur), quadrupedal with semi-sprawling limbs, broad triangular skull with a hooked parrot-like beak, stocky low body, medium tail, scaly skin, 1.3 meters long",
       "largo_m": 1.3,
       "alto_m": 0.4,
       "rig": true,
@@ -54,7 +54,7 @@
     },
     {
       "nombre": "ischigualastia",
-      "prompt": "Ischigualastia jenseni, large Triassic dicynodont, quadrupedal, tusked beak, barrel body, 3 meters long",
+      "prompt": "Ischigualastia jenseni, large Triassic dicynodont therapsid, quadrupedal, heavy barrel-shaped body, short tail, broad head with toothless turtle-like horny beak and NO tusks, sprawling stout forelimbs, thick wrinkled hairless reptilian skin, 3 meters long",
       "largo_m": 3.0,
       "alto_m": 1.2,
       "rig": true,
