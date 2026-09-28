@@ -153,7 +153,7 @@ CAPITULOS = {
     # llanura: la cámara a la altura de los ojos junto a la manada, mirando por la quebrada
     # al volcán; el punto de mira baja al tercio inferior del cono para que entre la columna
     "llanura": dict(desde=(92, 0.5, 19), hasta=(114, 0.5, 9), mira=(1100, 60, -700), sol=(30, 160), bruma=0.0012, ceniza=0, volcan=1, foco=22),
-    "ceniza":  dict(desde=(128, 3.4, 4), hasta=(118, 5, 16), mira=(104, 0, -4), sol=(14, 170), bruma=0.012, ceniza=1, volcan=1),
+    "ceniza":  dict(desde=(128, 3.4, 4), hasta=(118, 5, 16), mira=(104, 0, -4), sol=(14, 170), bruma=0.012, ceniza=1, volcan=1, exposicion=-0.2),
     # hoy: parado en la arcilla gris cuarteada, las barrancas rojas al fondo, sol alto y
     # cielo limpio de San Juan (sin bruma: el aire del desierto es seco y transparente)
     "hoy":     dict(desde=(118, 2.2, 16), hasta=(100, 2.6, 22), mira=(-120, 25, 40), sol=(62, 120), bruma=0.0, ceniza=0, volcan=0, hoy=True, foco=40, f=8, exposicion=-1.2),
@@ -623,7 +623,9 @@ def bruma_local(centro, densidad, ceniza):
     nt = m.node_tree
     nt.nodes.remove(nt.nodes["Principled BSDF"])
     pv = nodo(nt, "ShaderNodeVolumePrincipled")
-    pv.inputs["Density"].default_value = densidad
+    # tope: en la caja se mira de costado a lo largo de cientos de metros; con la densidad de
+    # la ceniza (0,012) el capítulo salía casi negro
+    pv.inputs["Density"].default_value = min(densidad, 0.004)
     pv.inputs["Color"].default_value = (0.85, 0.82, 0.78, 1) if not ceniza else (0.55, 0.52, 0.5, 1)
     pv.inputs["Anisotropy"].default_value = 0.45
     nt.links.new(pv.outputs[0], nt.nodes["Material Output"].inputs["Volume"])
@@ -817,7 +819,7 @@ def en_el_cono(x, zw):
     return abs(a) < math.radians(14)
 
 
-def cerca_del_camino(x, zw, radio=5.0):
+def cerca_del_camino(x, zw, radio=9.0):   # 9 m: con la densidad completa las copas invadían el lente
     if en_el_cono(x, zw):
         return True
     if not CAMINO["desde"]:
