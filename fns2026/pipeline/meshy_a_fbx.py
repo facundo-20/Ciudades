@@ -156,9 +156,55 @@ def _llamar(metodo, url, cuerpo=None, intentos=4):
             raise SystemExit(f"Sin conexión con Meshy ({e.reason}).")
 
 
+# ---------------------------------------------------------------------------
+# Freno de gasto. El 28/09 se gastaron 717 créditos y cerca de un tercio fue desperdicio: el 3D
+# se pagaba antes de revisar las vistas (salieron un "Hyperodapedon" dinosaurio y un "Submarino"
+# de metal), un camino fallido caía solo al otro y se pagaba dos veces, y se generaron cosas que
+# ya existían o no se llegan a ver. Desde ahora:
+#   · sin tope explícito no se gasta nada (MESHY_TOPE, o correr_todo.py --tope N)
+#   · cada paso pago se anota en fns2026/modelos/gastos_meshy.csv con el saldo antes
+#   · MESHY_SOLO_VISTAS=1: se pagan sólo las vistas (lo barato), se revisan, y recién después el 3D
+#   · nada de caer solo de un camino al otro, y el rig (que falló en todos) sólo con MESHY_RIG=1
+# ---------------------------------------------------------------------------
+# Costos aproximados por paso (se mide el real con el saldo y queda en el CSV)
+COSTO_ESTIMADO = {"vistas": 10, "multi_3d": 30, "imagen_3d": 30, "texto_3d": 20, "rig": 5, "animacion": 3}
+_GASTO = {"saldo_inicial": None, "modelo": "?"}
+REGISTRO_GASTOS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "modelos", "gastos_meshy.csv")
+
+
+def saldo():
+    return _llamar("GET", f"{API}/v1/balance").get("balance")
+
+
+def autorizar(tipo):
+    tope = int(os.environ.get("MESHY_TOPE", "0") or 0)
+    ahora = saldo()
+    if _GASTO["saldo_inicial"] is None:
+        _GASTO["saldo_inicial"] = ahora
+    gastado = _GASTO["saldo_inicial"] - ahora
+    costo = COSTO_ESTIMADO.get(tipo, 30)
+    if gastado + costo > tope:
+        raise SystemExit(f"Freno de gasto: esta corrida lleva {gastado} créditos y el próximo paso ({tipo}, "
+                         f"~{costo}) pasaría el tope de {tope}. Saldo: {ahora}. Para autorizar más: "
+                         f"correr_todo.py --tope <créditos> (o MESHY_TOPE).")
+    return ahora
+
+
+def anotar_gasto(tipo, id_tarea, saldo_antes):
+    os.makedirs(os.path.dirname(REGISTRO_GASTOS), exist_ok=True)
+    nuevo = not os.path.exists(REGISTRO_GASTOS)
+    with open(REGISTRO_GASTOS, "a", encoding="utf-8") as f:
+        if nuevo:
+            f.write("fecha,modelo,paso,id_tarea,saldo_antes\n")
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M')},{_GASTO['modelo']},{tipo},{id_tarea},{saldo_antes}\n")
+
+
 def crear(tipo, cuerpo):
+    antes = autorizar(tipo)
     r = _llamar("POST", _url(tipo), cuerpo)
-    return r.get("result") or r.get("id")
+    id_t = r.get("result") or r.get("id")
+    anotar_gasto(tipo, id_t, antes)
+    return id_t
 
 
 def esperar(tipo, id_tarea, cada=8, tope_min=30):
@@ -292,6 +338,11 @@ def por_vistas(item, carpeta):
         for i, u in enumerate(urls):
             if not os.path.exists(os.path.join(carpeta, f"vista_{i}.png")):
                 bajar_opcional(u, os.path.join(carpeta, f"vista_{i}.png"))
+        if os.environ.get("MESHY_SOLO_VISTAS") == "1":
+            # revisar antes de pagar el 3D: si la vista está mal, se corrige el prompt y sólo se
+            # perdieron las vistas, no el modelo entero
+            raise SystemExit(f"Vistas listas para revisar en {carpeta}/vista_*.png. Si están bien, correr de nuevo "
+                             f"sin --solo-vistas (retoma sin volver a pagarlas).")
     if not urls:
         raise SystemExit("Meshy no devolvió vistas.")
     tipo = "multi_3d" if len(urls) > 1 else "imagen_3d"
@@ -312,6 +363,7 @@ def por_texto(item, carpeta):
 
 def hacer(item, salida):
     nombre = item["nombre"]
+    _GASTO["modelo"] = nombre
     carpeta = os.path.join(salida, nombre)
     os.makedirs(carpeta, exist_ok=True)
     print(f"\n== {nombre} ==")
@@ -323,13 +375,9 @@ def hacer(item, salida):
     if camino == "texto":
         id_m, r = por_texto(item, carpeta)
     else:
-        try:
-            id_m, r = por_vistas(item, carpeta)
-        except SystemExit as e:
-            if camino == "vistas" or item.get("vistas"):
-                raise
-            print(f"   las vistas fallaron, sigo con texto a 3D:\n   {str(e)[:400]}")
-            id_m, r = por_texto(item, carpeta)
+        # sin caer solo al camino de texto: el guanaco pagó los dos caminos (28/09). Si las
+        # vistas fallan se frena y se decide (MESHY_CAMINO=texto para el otro camino).
+        id_m, r = por_vistas(item, carpeta)
 
     urls_modelo = r.get("model_urls", {})
     if r.get("thumbnail_url"):
@@ -348,7 +396,7 @@ def hacer(item, salida):
         raise SystemExit(f"{nombre}: la tarea terminó pero no trae model_urls: {list(r)}")
 
     # 3) rig + animaciones básicas, sólo para lo que se mueve (dinosaurios, no huesos)
-    if item.get("rig"):
+    if item.get("rig") and os.environ.get("MESHY_RIG") == "1":   # falló en todos los animales
         # El rig de Meshy está pensado para bípedos; con los cuadrúpedos (rincosaurio,
         # dicinodonte) puede fallar. El modelo ya está bajado, así que eso no lo invalida.
         try:

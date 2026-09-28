@@ -23,3 +23,4 @@ fns2026/ae_puente/trabajo_actual.json
 fns2026/ae_puente/proyectos/
 AE_salida/
 fns2026/ae_puente/hechos/**/*.aep
+!fns2026/modelos/gastos_meshy.csv

@@ -133,10 +133,17 @@ def main():
     ap.add_argument("--simular", action="store_true", help="sin Meshy, con modelos de prueba")
     ap.add_argument("--rehacer", action="store_true", help="volver a refinar aunque ya esté hecho")
     ap.add_argument("--no-abrir", action="store_true")
+    ap.add_argument("--tope", type=int, default=0,
+                    help="créditos de Meshy que esta corrida puede gastar (sin esto no gasta nada; bajar lo ya pago es gratis)")
+    ap.add_argument("--solo-vistas", action="store_true",
+                    help="pagar sólo las vistas para revisarlas; el 3D se paga en una segunda corrida")
     ap.add_argument("--incluir-existentes", action="store_true",
                     help="regenerar también lo que ya existe en la Mac (por defecto se saltea: no hay doble trabajo)")
     a = ap.parse_args()
 
+    os.environ["MESHY_TOPE"] = str(a.tope)
+    if a.solo_vistas:
+        os.environ["MESHY_SOLO_VISTAS"] = "1"
     lista = json.load(open(LISTA, encoding="utf-8"))["modelos"]
     if a.solo:
         lista = [m for m in lista if m["nombre"] in a.solo]

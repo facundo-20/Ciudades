@@ -1,5 +1,24 @@
 # Modelos de Meshy: informe (28/09/2026)
 
+## Gasto y cómo se frena (léase primero)
+
+- **Saldo:** empezó en 1.533 créditos y quedan **816**. Se gastaron 717.
+- **Desperdicio:** cerca de un tercio, unos 250 créditos, fue en cosas que no quedaron:
+  - *Hyperodapedon* 1ª versión (salió dinosaurio);
+  - Submarino 1ª versión (salió de metal);
+  - conífera generada dos veces;
+  - arco del Bicentenario (salió mal; el hecho en Blender es mejor y gratis);
+  - observatorio CASLEO (no se ve en la postal);
+  - guanaco con los dos caminos pagos;
+  - Hongo y Submarino, que ya estaban en la Mac.
+- **Candados del pipeline desde ahora:**
+  - **Tope obligatorio:** sin `correr_todo.py --tope N` no se gasta nada. Bajar lo ya pago es gratis.
+  - **Vistas primero:** `--solo-vistas` paga sólo las imágenes. Se revisan y el 3D se paga en una segunda corrida, así un error cuesta unos 10 créditos y no unos 40.
+  - **Sin reintentos automáticos:** no se cae solo de un camino al otro.
+  - **Sin rig de Meshy:** falla en todos los animales. Se activa sólo con `MESHY_RIG=1`.
+  - **Registro:** cada paso pago se anota en `gastos_meshy.csv`, con el saldo antes.
+- **Regla:** lo que se puede hacer a medida en Blender se hace en Blender (arcos, torres, bochas, vehículos). Meshy queda para lo orgánico: animales, plantas y rocas erosionadas.
+
 ## Resumen
 
 - **Créditos:** había 1.533 y quedan 882. Se gastaron unos 650.
@@ -29,12 +48,13 @@ Los cuatro reemplazan a los procedurales en el render: dicroidium, neocalamites,
 | Modelo | Medida | Revisión |
 |---|---|---|
 | el_hongo | 6 m **[a confirmar]** | excelente, fiel a la formación |
-| el_submarino | 10 m **[a confirmar]** | sin revisar en postal |
+| el_submarino | 25 m de largo, 12 m de alto **[a confirmar]** | **rehecho**: el 1º fue un submarino de metal; el 2º es una loma de arenisca con columnas, fiel a la foto |
 | bochas | hasta 0,9 m | bien; en la postal se reparte una cancha entera |
 | cerro_alcazar | 120 m de alto **[a confirmar]** | excelente: bandas triásicas de colores |
 | observatorio_casleo | 30 m | en la postal queda lejos, arriba de un cerro |
 | carro_velero | 5 m | bien |
 | campanario_catedral | 50 m **[a confirmar]** | ladrillo, laja y columnas blancas; el techo en punta está **[a confirmar]** |
+| guanaco | 1,9 m | bien: lomo rojizo, panza blanca (fauna de hoy) |
 | arco_bicentenario | 63 m | **descartado**: salió de medio punto. Se usa el arco a medida (63 m de luz, 6 m de alto) |
 
 ## Rigor científico en los prompts
