@@ -64,6 +64,29 @@
           fichas: [] }
     ];
 
+    // Recorrido por San Juan (fns2026/escenas/sanjuan): el Sanjuansaurus muestra la provincia hoy.
+    // Se activa con $.global.FNS_MODO = "sanjuan" (lo usa el trabajo 003 del puente).
+    var GUIA = ["Sanjuansaurus gordilloi", "«Lagarto de San Juan» · dinosaurio de Ischigualasto · 3 m"];
+    var CALIDO = { negro: [0.05, 0.05, 0.08], blanco: [1.0, 0.93, 0.82], tinte: 20, brillo: 2, contraste: 12 };
+    var RECORRIDO = [
+        { clave: "hongo", titulo: "El Hongo", sub: "Parque Provincial Ischigualasto · Valle de la Luna · Patrimonio de la Humanidad",
+          atm: "viento", look: CALIDO, fichas: [GUIA] },
+        { clave: "bochas", titulo: "Cancha de Bochas", sub: "Concreciones de 5 a 90 cm de diámetro, de más de 220 millones de años",
+          atm: "viento", look: CALIDO, fichas: [GUIA, ["Hyperodapedon sanjuanensis", "Rincosaurio · 1,3 m"]] },
+        { clave: "alcazar", titulo: "Cerro Alcázar", sub: "Barreal, Calingasta · sedimentos del Triásico tallados por el viento y el agua",
+          atm: "calor", look: CALIDO, fichas: [GUIA, ["Panphagia protos", "Dinosaurio · 1,3 m"]] },
+        { clave: "leoncito", titulo: "Pampa El Leoncito", sub: "Calingasta · carrovelismo en el barreal y los cielos más limpios del país (CASLEO)",
+          atm: "amanecer", look: { negro: [0.06, 0.05, 0.09], blanco: [1.0, 0.84, 0.66], tinte: 30, brillo: 2, contraste: 12 },
+          fichas: [GUIA, ["Exaeretodon argentinus", "Cinodonte, pariente de los mamíferos · 1,8 m"]] },
+        { clave: "cuesta", titulo: "Dique Cuesta del Viento", sub: "Rodeo, Iglesia · uno de los mejores lugares del mundo para el windsurf y el kitesurf",
+          atm: "viento", look: CALIDO, fichas: [GUIA, ["Exaeretodon argentinus", "Cinodonte · 1,8 m"]] },
+        { clave: "catedral", titulo: "Catedral de San Juan", sub: "Plaza 25 de Mayo · inaugurada en 1979, una de las catedrales más modernas del país",
+          atm: "polen", look: CALIDO, fichas: [GUIA, ["Panphagia protos", "Dinosaurio · 1,3 m"]] },
+        { clave: "bicentenario", titulo: "Teatro del Bicentenario", sub: "Su arco de 63 m de luz está revestido en 9.000 placas de travertino sanjuanino",
+          atm: "polen", look: CALIDO, fichas: [GUIA, ["Hyperodapedon sanjuanensis", "Rincosaurio · 1,3 m"]] }
+    ];
+    if ($.global.FNS_MODO === "sanjuan") { CAPITULOS = RECORRIDO; }
+
     var informe = [];
     function anotar(t) { informe.push(t); }
 
@@ -532,7 +555,8 @@
     function armarMaestro(comps) {
         var paso = CFG.segCapitulo - CFG.solape;
         var dur = paso * (comps.length - 1) + CFG.segCapitulo;
-        var m = app.project.items.addComp("FNS2026_PARQUE_TRIASICO_LED", CFG.ancho, CFG.alto, 1, dur, CFG.fps);
+        var m = app.project.items.addComp($.global.FNS_MODO === "sanjuan" ? "FNS2026_RECORRIDO_SAN_JUAN_LED" : "FNS2026_PARQUE_TRIASICO_LED",
+                                          CFG.ancho, CFG.alto, 1, dur, CFG.fps);
         m.motionBlur = true;
         var capas = [];
         for (var i = 0; i < comps.length; i++) {
@@ -639,7 +663,7 @@
     if (!carpeta) { return; }
 
     app.beginUndoGroup("Parque Triásico FNS 2026");
-    var raiz = app.project.items.addFolder("FNS2026_Parque_Triasico");
+    var raiz = app.project.items.addFolder($.global.FNS_MODO === "sanjuan" ? "FNS2026_Recorrido_San_Juan" : "FNS2026_Parque_Triasico");
 
     var pruebaComp = app.project.items.addComp("_detectar_plugins", 100, 100, 1, 1, CFG.fps);
     detectarPlugins(pruebaComp);
@@ -703,7 +727,8 @@
         var rq = app.project.renderQueue.items.add(maestro);
         var om = rq.outputModule(1);
         try { om.applyTemplate("High Quality"); } catch (e1) { try { om.applyTemplate("Alta calidad"); } catch (e2) {} }
-        om.file = new File(salida.fsName + "/FNS2026_Parque_Triasico_LED_5760x1080.mov");
+        om.file = new File(salida.fsName + ($.global.FNS_MODO === "sanjuan" ? "/FNS2026_Recorrido_San_Juan_LED_5760x1080.mov"
+                                                                          : "/FNS2026_Parque_Triasico_LED_5760x1080.mov"));
         anotar("En la cola de render: " + om.file.fsName);
     } catch (e) {
         anotar("No pude armar la cola de render (" + e.toString() + "): agregá FNS2026_PARQUE_TRIASICO_LED a mano.");

@@ -15,6 +15,13 @@ Arma solo la pieza del LED: **5760 × 1080** (las 3 pantallas), 30 fps y unos 64
 3. Elegí la carpeta de renders. Al terminar, el script muestra un resumen: qué plugins encontró y qué falta.
 4. Cola de render: sale sin pérdida a `<carpeta>/AE_salida/`. Para Resolume, pasalo a **DXV** con Alley o Media Encoder.
 
+## Recorrido por San Juan
+
+Con `$.global.FNS_MODO = "sanjuan"` el mismo script arma la pieza con las 7 postales de `../sanjuan/`: Hongo, Cancha de Bochas, Cerro Alcázar, Pampa El Leoncito, Cuesta del Viento, Catedral y Teatro del Bicentenario.
+
+- **Qué lleva cada postal:** título, dato, la ficha del *Sanjuansaurus* guía y la de su acompañante.
+- **Cómo se dispara:** desde el puente, es el trabajo `ae_puente/cola/003_recorrido_san_juan.jsx`.
+
 ## Qué arma
 
 - **`FNS2026_PARQUE_TRIASICO_LED`:** la pieza completa.
