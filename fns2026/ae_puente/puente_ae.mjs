@@ -67,7 +67,9 @@ function correrEnAfter(ae, scriptAbs) {
 function esperar(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 async function ciclo(ae) {
-  try { git('pull', '--ff-only', 'origin', RAMA); } catch (e) { console.log('pull falló (sigo):', e.message.split('\n')[0]); }
+  // merge y no fast-forward: la PC sube resultados y la nube sube trabajos al mismo tiempo, y con
+  // --ff-only el puente quedaba trabado para siempre en cuanto las dos historias divergían
+  try { git('pull', '--no-rebase', '--no-edit', 'origin', RAMA); } catch (e) { console.log('pull falló (sigo):', e.message.split('\n')[0]); }
   if (!existsSync(COLA)) return;
   mkdirSync(HECHOS, { recursive: true });
   const trabajos = readdirSync(COLA).filter((f) => f.endsWith('.jsx')).sort();
@@ -96,7 +98,11 @@ async function ciclo(ae) {
     try {
       git('add', 'fns2026/ae_puente/hechos');
       git('commit', '-m', 'puente AE: resultados');
-      git('push', 'origin', RAMA);
+      try { git('push', 'origin', RAMA); } catch {
+        // si la nube subió algo mientras After trabajaba: se mezcla y se reintenta una vez
+        git('pull', '--no-rebase', '--no-edit', 'origin', RAMA);
+        git('push', 'origin', RAMA);
+      }
       console.log('  resultados subidos');
     } catch (e) { console.log('push falló (reintento en el próximo ciclo):', e.message.split('\n')[0]); }
   }
