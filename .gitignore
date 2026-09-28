@@ -1,7 +1,16 @@
 __pycache__/
 *.pyc
-fns2026/modelos/
-fns2026/modelos_meshy/
+# modelos generados: pesados, fuera de git; sí van el informe y las vistas previas
+fns2026/modelos/*
+!fns2026/modelos/INFORME.md
+!fns2026/modelos/*/
+fns2026/modelos/*/*
+!fns2026/modelos/*/*_vista.png
+# crudos de Meshy fuera de git; los id de tarea sí (con eso se re-bajan sin pagar de nuevo)
+fns2026/modelos_meshy/*
+!fns2026/modelos_meshy/*/
+fns2026/modelos_meshy/*/*
+!fns2026/modelos_meshy/*/tareas.json
 fns2026/resultados.html
 fns2026/correr_todo.log
 fns2026/escenas/render/

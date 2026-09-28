@@ -311,6 +311,9 @@ def hacer(item, salida):
     print(f"\n== {nombre} ==")
 
     camino = os.environ.get("MESHY_CAMINO", "auto")      # auto | vistas | texto
+    if camino == "auto" and "texto_refinado" in _diario(carpeta)[1]:
+        # ya se cayó una vez al camino de texto y ese modelo está pago: no se reintenta vistas
+        camino = "texto"
     if camino == "texto":
         id_m, r = por_texto(item, carpeta)
     else:
