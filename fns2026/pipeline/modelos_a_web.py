@@ -43,9 +43,11 @@ def main():
         shutil.copyfile(glb, os.path.join(WEB, f"{especie}.glb"))
         puestas.append(especie)
         print(f"  {especie}: {mb:.1f} MB")
-    for d in sorted(os.listdir(MODELOS)) if os.path.isdir(MODELOS) else []:
-        if os.path.isdir(os.path.join(MODELOS, d)) and d not in conocidas and not d.endswith("_meshy") \
-                and os.path.exists(os.path.join(MODELOS, d, f"{d}_medio.glb")):
+    # sólo avisa por animales: los hitos y la flora no van a la fauna de la web
+    lista = json.load(open(os.path.join(AQUI, "lista_modelos.json"), encoding="utf-8"))["modelos"]
+    animales = {m["nombre"] for m in lista if m.get("destino") == "dinosaurio"}
+    for d in sorted(animales):
+        if d not in conocidas and os.path.exists(os.path.join(MODELOS, d, f"{d}_medio.glb")):
             print(f"  {d}: hay modelo pero la web no tiene la especie (agregarla en ESPECIES de fauna.js)")
     with open(os.path.join(WEB, "lista.json"), "w", encoding="utf-8") as f:
         json.dump(puestas, f)
