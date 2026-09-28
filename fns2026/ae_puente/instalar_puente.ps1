@@ -32,7 +32,7 @@ if (Test-Path (Join-Path $dir ".git")) {
     Write-Host "Actualizando $dir…"
     git -C $dir fetch origin $rama
     git -C $dir checkout $rama
-    git -C $dir pull --ff-only origin $rama
+    git -C $dir pull --no-rebase --no-edit origin $rama
 } else {
     Write-Host "Clonando en $dir…"
     git clone -b $rama $repo $dir
