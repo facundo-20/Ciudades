@@ -79,8 +79,11 @@ def main():
             if not fmt:
                 continue
             ext = ".jpg" if "jpg" in res else ".png"
+            # primero se baja y después se escribe: si la red corta, no queda un .jpg vacío
+            # que después Cycles intenta cargar (pasó el 28/09 con dl.polyhaven.org bloqueado)
+            datos = leer(fmt["url"])
             with open(os.path.join(carpeta, nuestro + ext), "wb") as f:
-                f.write(leer(fmt["url"]))
+                f.write(datos)
             bajados.append(nuestro)
         with open(os.path.join(carpeta, "LICENCIA.txt"), "w", encoding="utf-8") as f:
             f.write(f"CC0 · Poly Haven · https://polyhaven.com/a/{ident}\n")

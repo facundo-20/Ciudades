@@ -94,9 +94,43 @@ def altura_web(x, zw):
     h *= 1 - 0.65 * lisa(60, 95, x)
     for cx, cz, r in ((100, 18, 9), (125, -22, 7)):
         h -= 1.8 * math.exp(-(((x - cx) ** 2 + (zw - cz) ** 2) / (r * r)))
-    borde = max(lisa(80, 118, abs(zw)), lisa(140, 170, x), lisa(-100, -130, x))
+    borde = max(lisa(80, 118, abs(zw)), lisa(140, 170, x) * (1 - quebrada_volcan(x, zw)), lisa(-100, -130, x))
     h += borde * 22 * (0.7 + 0.3 * fbm2(x * 0.05, zw * 0.05, 2))
     return h
+
+
+# El cordón de 22 m que cierra el mundo por x > 140 tapaba el volcán desde la llanura (el
+# problema de las pruebas del 28/09). Acá se le abre una quebrada en la línea de vista hacia
+# el cráter: desde la manada se ve la montaña entera y el borde sigue cerrando el resto.
+# Sólo en Blender: la web tiene su propia copia del relieve y no se ve el volcán a ras del suelo.
+LLANURA_OJO = (103.0, 14.0)
+VOLCAN_WEB = (1100.0, -700.0)
+
+
+def quebrada_volcan(x, zw):
+    ox, oz = LLANURA_OJO
+    dx, dz = VOLCAN_WEB[0] - ox, VOLCAN_WEB[1] - oz
+    largo = math.hypot(dx, dz)
+    ux, uz = dx / largo, dz / largo
+    t = (x - ox) * ux + (zw - oz) * uz          # avance sobre la línea de vista
+    d = abs((x - ox) * uz - (zw - oz) * ux)     # distancia a esa línea
+    return lisa(20, 45, t) * math.exp(-((d / (18 + 0.25 * max(t, 0))) ** 2))
+
+
+MODO = {"hoy": False}
+
+
+def altura_hoy(x, zw):
+    """Valle de la Luna hoy: lomas bajas y redondeadas de arcilla gris (la Formación
+    Ischigualasto erosionada), sin el río ni el cordón del Triásico."""
+    lomas = max(0.0, fbm2(x * 0.035 + 11, zw * 0.035, 4)) ** 1.6 * 9
+    return fbm2(x * 0.012, zw * 0.012, 4) * 2.5 + lomas
+
+
+def altura(x, zw):
+    if MODO["hoy"]:
+        return altura_hoy(x, zw)
+    return altura_web(x, zw)
 
 
 def zona(x):
@@ -113,9 +147,13 @@ CAPITULOS = {
     "titulo":  dict(desde=(-120, 26, 60), hasta=(-95, 14, 40), mira=(-60, 0, 0), sol=(6, 250), bruma=0.0025, ceniza=0, volcan=0.2),
     "rio":     dict(desde=(-95, 3.2, 26), hasta=(-30, 2.6, 20), mira=(0, 0, -10), sol=(22, 230), bruma=0.0018, ceniza=0, volcan=0.3),
     "bosque":  dict(desde=(8, 2.2, 12), hasta=(62, 2.2, -4), mira=(120, 1, -20), sol=(40, 200), bruma=0.0035, ceniza=0, volcan=0.4),
-    "llanura": dict(desde=(78, 4, 24), hasta=(128, 3.4, 4), mira=(1100, 180, -700), sol=(30, 180), bruma=0.0012, ceniza=0, volcan=1),
+    # llanura: la cámara a la altura de los ojos junto a la manada, mirando por la quebrada
+    # al volcán; el punto de mira baja al tercio inferior del cono para que entre la columna
+    "llanura": dict(desde=(92, 3.4, 19), hasta=(114, 3.6, 9), mira=(1100, 150, -700), sol=(30, 160), bruma=0.0012, ceniza=0, volcan=1, foco=16),
     "ceniza":  dict(desde=(128, 3.4, 4), hasta=(118, 5, 16), mira=(104, 0, -4), sol=(14, 170), bruma=0.012, ceniza=1, volcan=1),
-    "hoy":     dict(desde=(118, 6, 16), hasta=(60, 34, 70), mira=(30, 2, -20), sol=(48, 215), bruma=0.0008, ceniza=0, volcan=0, hoy=True),
+    # hoy: parado en la arcilla gris cuarteada, las barrancas rojas al fondo, sol alto y
+    # cielo limpio de San Juan (sin bruma: el aire del desierto es seco y transparente)
+    "hoy":     dict(desde=(118, 2.2, 16), hasta=(100, 2.6, 22), mira=(-120, 25, 40), sol=(62, 120), bruma=0.0, ceniza=0, volcan=0, hoy=True, foco=40, f=8),
 }
 
 ESPECIES_LUGARES = {
@@ -124,9 +162,9 @@ ESPECIES_LUGARES = {
     "herrerasaurus": [(35, -8, 2.8), (110, 10, 3.6)],
     "eoraptor": [(28, 6, 0.4), (31, 3, 0.9), (26, 9, 5.9)],
     "panphagia": [(45, 15, 1.1)],
-    "ischigualastia": [(104, -6, 2.0), (107, -2, 2.2), (101, -3, 1.8)],
+    "ischigualastia": [(114, 6.5, 2.4), (118.5, 4.5, 2.1), (121, 8.5, 2.6)],
     "eodromaeus": [(50, -10, 4.0)],
-    "sanjuansaurus": [(118, 2, 3.3)],
+    "sanjuansaurus": [(128, -2.5, 5.4)],
 }
 
 
@@ -179,7 +217,7 @@ def terreno(centro_x, centro_zw, lado=220.0, paso=0.5, hoy=False, ceniza=0.0):
         for i in range(n + 1):
             x = centro_x - lado / 2 + i * paso
             zw = centro_zw - lado / 2 + j * paso
-            h = altura_web(x, zw)
+            h = altura(x, zw)
             d, rio = dist_rio(x, zw), hay_rio(x)
             humedo = rio * math.exp(-((d / 9) ** 2))
             arena = rio * math.exp(-(((d - 7) / 2.2) ** 2)) * (0.6 + 0.4 * fbm2(x * 0.2, zw * 0.2, 2))
@@ -213,7 +251,7 @@ def horizonte(cx, czw, material):
         for k in range(128):
             a = 2 * math.pi * k / 128
             x, zw = cx + r * math.cos(a), czw + r * math.sin(a)
-            h = altura_web(x, zw) if r < 700 else 18 + fbm2(x * 0.004, zw * 0.004, 3) * 60
+            h = altura(x, zw) if r < 700 else 18 + fbm2(x * 0.004, zw * 0.004, 3) * 60
             fila.append(bm.verts.new((x, -zw, h - (0.8 if r == 100 else 0))))
         anillos.append(fila)
     for i in range(len(anillos) - 1):
@@ -282,8 +320,20 @@ def material_suelo(hoy=False, ceniza=0.0):
     suelo = mezcla(are, suelo, (0.55, 0.45, 0.32))
     suelo = mezcla(hum, suelo, (0.07, 0.055, 0.04))
     if hoy:
-        # Valle de la Luna: arcilla gris clara cuarteada
-        suelo = mezcla(0.92, suelo, (0.47, 0.44, 0.40))
+        # Valle de la Luna: arcilla gris clara cuarteada. Las grietas se ven por la sombra de
+        # adentro (color), no sólo por el relieve: con sol alto el bump solo casi no se nota.
+        suelo = mezcla(0.95, suelo, (0.50, 0.47, 0.43))
+        manchas = ruido(0.05, 5)
+        suelo = mezcla(sal(manchas, "Factor", "Fac"), (0.40, 0.42, 0.38), (0.56, 0.49, 0.40))   # gris verdoso ↔ ocre
+        suelo = mezcla(sal(micro, "Factor", "Fac"), suelo, (0.44, 0.41, 0.37), "MULTIPLY")
+        placas = nodo(nt, "ShaderNodeTexVoronoi", feature="DISTANCE_TO_EDGE")
+        placas.inputs["Scale"].default_value = 2.4
+        l.new(tc.outputs["Object"], placas.inputs["Vector"])
+        borde = nodo(nt, "ShaderNodeMapRange")
+        borde.inputs["From Min"].default_value, borde.inputs["From Max"].default_value = 0.0, 0.035
+        borde.inputs["To Min"].default_value, borde.inputs["To Max"].default_value = 1.0, 0.0
+        l.new(sal(placas, "Distance"), borde.inputs["Value"])
+        suelo = mezcla(borde.outputs[0], suelo, (0.12, 0.105, 0.09))
     if ceniza:
         suelo = mezcla(min(1.0, ceniza) * 0.9, suelo, (0.46, 0.45, 0.43))
     # texturas escaneadas CC0 (bajar_texturas_cc0.py): si están, reemplazan lo procedural
@@ -398,10 +448,106 @@ def agua(centro_x, centro_zw, lado=220.0):
 
 
 # ------------------------------------------------------------------------------------------
+# hoy: barrancas coloradas con estratos
+# ------------------------------------------------------------------------------------------
+
+def material_estratos():
+    """Areniscas y limolitas rojas en capas horizontales (Formación Los Colorados): bandas por
+    altura, torcidas apenas con ruido para que no parezcan pintadas con regla."""
+    m = bpy.data.materials.new("estratos_colorados")
+    m.use_nodes = True
+    nt = m.node_tree
+    n, l = nt.nodes, nt.links
+    bs = n["Principled BSDF"]
+    tc = nodo(nt, "ShaderNodeTexCoord")
+    sep = nodo(nt, "ShaderNodeSeparateXYZ")
+    l.new(tc.outputs["Object"], sep.inputs[0])
+    tuerce = nodo(nt, "ShaderNodeTexNoise")
+    tuerce.inputs["Scale"].default_value = 0.02
+    tuerce.inputs["Detail"].default_value = 3
+    l.new(tc.outputs["Object"], tuerce.inputs["Vector"])
+    suma = nodo(nt, "ShaderNodeMath", operation="MULTIPLY_ADD")
+    l.new(sal(tuerce, "Factor", "Fac"), suma.inputs[0])
+    suma.inputs[1].default_value = 6.0
+    l.new(sep.outputs["Z"], suma.inputs[2])
+    capas = nodo(nt, "ShaderNodeTexNoise")          # 1D en altura: bandas de espesor irregular
+    capas.noise_dimensions = "1D"
+    capas.inputs["Scale"].default_value = 0.09
+    capas.inputs["Detail"].default_value = 6
+    capas.inputs["Roughness"].default_value = 0.6
+    l.new(suma.outputs[0], capas.inputs["W"])
+    rampa = nodo(nt, "ShaderNodeValToRGB")
+    cr = rampa.color_ramp
+    cr.interpolation = "CONSTANT"
+    colores = [(0.0, (0.30, 0.075, 0.035)), (0.36, (0.42, 0.12, 0.05)), (0.46, (0.55, 0.28, 0.13)),
+               (0.53, (0.36, 0.10, 0.05)), (0.60, (0.62, 0.45, 0.32)), (0.64, (0.40, 0.13, 0.06)),
+               (0.75, (0.25, 0.07, 0.04))]
+    cr.elements[0].position, cr.elements[0].color = colores[0][0], (*colores[0][1], 1)
+    cr.elements[1].position, cr.elements[1].color = colores[1][0], (*colores[1][1], 1)
+    for pos, col in colores[2:]:
+        e = cr.elements.new(pos)
+        e.color = (*col, 1)
+    l.new(sal(capas, "Factor", "Fac"), rampa.inputs[0])
+    sucio = nodo(nt, "ShaderNodeTexNoise")
+    sucio.inputs["Scale"].default_value = 0.6
+    sucio.inputs["Detail"].default_value = 10
+    l.new(tc.outputs["Object"], sucio.inputs["Vector"])
+    mx = nodo(nt, "ShaderNodeMix", data_type="RGBA", blend_type="MULTIPLY")
+    mx.inputs["Factor"].default_value = 0.35
+    l.new(rampa.outputs["Color"], mx.inputs["A"])
+    l.new(sal(sucio, "Color"), mx.inputs["B"])
+    l.new(mx.outputs["Result"], bs.inputs["Base Color"])
+    bs.inputs["Roughness"].default_value = 0.92
+    bump = nodo(nt, "ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.6
+    l.new(sal(sucio, "Factor", "Fac"), bump.inputs["Height"])
+    l.new(bump.outputs["Normal"], bs.inputs["Normal"])
+    return m
+
+
+def barrancas(ojo, mira, distancia=230.0, abertura=80.0):
+    """Paredón rojo frente a la cámara: perfil de acantilado (talud, pared, cornisa, meseta)
+    con cárcavas verticales de erosión que lo meten y lo sacan."""
+    ox, oz = ojo
+    rumbo = math.atan2(mira[1] - oz, mira[0] - ox)
+    columnas = 260
+    bm = bmesh.new()
+    filas = []
+    perfil = [(-55, 0.0), (-28, 0.10), (-10, 0.22), (0, 0.32), (2, 0.55), (4, 0.80), (7, 0.97), (12, 1.0), (90, 0.93)]
+    for c in range(columnas):
+        a = rumbo + math.radians(-abertura + 2 * abertura * c / (columnas - 1))
+        carcava = abs(fbm2(c * 0.09, 3.3, 3)) * 2.2
+        alto = 38 + fbm2(c * 0.025, 9.1, 3) * 26
+        r0 = distancia + fbm2(c * 0.02, 1.7, 3) * 60 + carcava * 14
+        col = []
+        for dr, fh in perfil:
+            r = r0 + dr * (1 + 0.4 * carcava)
+            x, zw = ox + r * math.cos(a), oz + r * math.sin(a)
+            base = altura(x, zw) - 1.0
+            col.append(bm.verts.new((x, -zw, base + fh * alto * (1 - 0.18 * carcava * (fh < 0.99)))))
+        filas.append(col)
+    for c in range(columnas - 1):
+        for k in range(len(perfil) - 1):
+            f = bm.faces.new((filas[c][k], filas[c + 1][k], filas[c + 1][k + 1], filas[c][k + 1]))
+            f.smooth = True
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=1, use_grid_fill=True)
+    me = bpy.data.meshes.new("barrancas")
+    bm.to_mesh(me)
+    bm.free()
+    # un poco de relieve de roca a escala de metros, que la subdivisión deja lugar
+    for v in me.vertices:
+        v.co += Vector((fbm2(v.co.y * 0.3, v.co.z * 0.3, 3), fbm2(v.co.x * 0.3, v.co.z * 0.3 + 5, 3), 0)) * 1.8
+    ob = bpy.data.objects.new("barrancas", me)
+    bpy.context.scene.collection.objects.link(ob)
+    ob.data.materials.append(material_estratos())
+    return ob
+
+
+# ------------------------------------------------------------------------------------------
 # cielo, sol, niebla, volcán
 # ------------------------------------------------------------------------------------------
 
-def cielo(elevacion, azimut, bruma, volumetrica, ceniza):
+def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False):
     esc = bpy.context.scene
     w = bpy.data.worlds.new("cielo_triasico")
     esc.world = w
@@ -420,7 +566,9 @@ def cielo(elevacion, azimut, bruma, volumetrica, ceniza):
     sky.sun_disc = False          # el sol lo pone la lámpara: con los dos, la luz se duplica y se quema
     try:
         sky.air_density = 1.0
-        sky.aerosol_density = 1.5 + 6 * ceniza               # la ceniza vuelve el aire lechoso
+        sky.aerosol_density = 0.35 if limpio else 1.5 + 6 * ceniza   # la ceniza vuelve el aire lechoso
+        if limpio:
+            sky.ozone_density = 1.4        # un poco más de ozono = el azul profundo del cielo de altura
     except AttributeError:
         pass
     bg = nt.nodes["Background"]
@@ -445,20 +593,25 @@ def cielo(elevacion, azimut, bruma, volumetrica, ceniza):
 def volcan(actividad):
     pos = web_a_blender((1100, -30, -700))      # lejos: en el horizonte, no encima del bosque
     bm = bmesh.new()
-    perfil = [(r * 2.2, h * 2.2) for r, h in [(260, 0), (190, 40), (110, 95), (55, 125), (38, 122)]]
+    perfil = [(r * 2.2, h * 2.2) for r, h in [(260, 0), (225, 18), (190, 40), (150, 68), (110, 95),
+                                               (80, 113), (55, 125), (38, 122)]]
     anillos = []
     for r, h in perfil:
         anillos.append([bm.verts.new((pos.x + r * math.cos(a), pos.y + r * math.sin(a), pos.z + h))
-                        for a in (2 * math.pi * k / 96 for k in range(96))])
+                        for a in (2 * math.pi * k / 256 for k in range(256))])
     for i in range(len(anillos) - 1):
-        for k in range(96):
-            k2 = (k + 1) % 96
+        for k in range(256):
+            k2 = (k + 1) % 256
             bm.faces.new((anillos[i][k], anillos[i][k2], anillos[i + 1][k2], anillos[i + 1][k]))
     me = bpy.data.meshes.new("volcan")
     bm.to_mesh(me)
     bm.free()
     for v in me.vertices:
-        v.co.z += fbm2(v.co.x * 0.02, v.co.y * 0.02, 4) * 14
+        # cárcavas radiales (la lluvia y los lahares bajan por la ladera) + relieve irregular
+        ang = math.atan2(v.co.y - pos.y, v.co.x - pos.x)
+        r = math.hypot(v.co.x - pos.x, v.co.y - pos.y)
+        surcos = abs(fbm2(ang * 9.0, 0.3, 3)) * min(1.0, r / 150) * 18
+        v.co.z += fbm2(v.co.x * 0.01, v.co.y * 0.01, 4) * 40 - surcos
     ob = bpy.data.objects.new("volcan", me)
     bpy.context.scene.collection.objects.link(ob)
     mat = bpy.data.materials.new("basalto")
@@ -467,26 +620,66 @@ def volcan(actividad):
     mat.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.95
     ob.data.materials.append(mat)
     if actividad > 0.1:
-        # columna de ceniza: volumen con ruido, más denso abajo
-        bpy.ops.mesh.primitive_cylinder_add(radius=200, depth=900, location=(pos.x + 80, pos.y, pos.z + 270 + 450))
+        # columna de ceniza: un cono que se abre hacia arriba (la pluma se expande al subir),
+        # con ruido en coordenadas generadas (0-1 en la caja del objeto) y no en metros: en
+        # metros el ruido era tan fino que se promediaba a casi nada y la columna no se veía.
+        bpy.ops.mesh.primitive_cone_add(vertices=48, radius1=80, radius2=560, depth=1100,
+                                        location=(pos.x + 60, pos.y, pos.z + 262 + 550))
         col = bpy.context.object
         col.name = "columna_ceniza"
+        # el viento de altura inclina la pluma: la parte de arriba se corre a sotavento
+        for v in col.data.vertices:
+            k = (v.co.z + 550) / 1100
+            v.co.x += 380 * k * k
         mv = bpy.data.materials.new("humo_volcan")
         mv.use_nodes = True
         nt = mv.node_tree
         nt.nodes.remove(nt.nodes["Principled BSDF"])
         pv = nodo(nt, "ShaderNodeVolumePrincipled")
-        pv.inputs["Color"].default_value = (0.18, 0.17, 0.16, 1)
+        pv.inputs["Color"].default_value = (0.42, 0.39, 0.36, 1)      # ceniza iluminada: gris pardo
         tc = nodo(nt, "ShaderNodeTexCoord")
         ru = nodo(nt, "ShaderNodeTexNoise")
-        ru.inputs["Scale"].default_value = 2.5
-        ru.inputs["Detail"].default_value = 8
-        nt.links.new(tc.outputs["Object"], ru.inputs["Vector"])
+        ru.inputs["Scale"].default_value = 3.5
+        ru.inputs["Detail"].default_value = 10
+        ru.inputs["Roughness"].default_value = 0.62
+        nt.links.new(tc.outputs["Generated"], ru.inputs["Vector"])
         dens = nodo(nt, "ShaderNodeMapRange")
-        dens.inputs["From Min"].default_value, dens.inputs["From Max"].default_value = 0.45, 0.75
-        dens.inputs["To Max"].default_value = 0.08 * actividad
+        dens.inputs["From Min"].default_value, dens.inputs["From Max"].default_value = 0.32, 0.68
+        dens.inputs["To Max"].default_value = 0.10 * actividad
         nt.links.new(sal(ru, "Factor", "Fac"), dens.inputs["Value"])
-        nt.links.new(dens.outputs[0], pv.inputs["Density"])
+        # más densa abajo, junto al cráter, y rala arriba
+        sep = nodo(nt, "ShaderNodeSeparateXYZ")
+        nt.links.new(tc.outputs["Generated"], sep.inputs[0])
+        caida = nodo(nt, "ShaderNodeMapRange")
+        caida.inputs["To Min"].default_value, caida.inputs["To Max"].default_value = 1.0, 0.25
+        nt.links.new(sep.outputs["Z"], caida.inputs["Value"])
+        por = nodo(nt, "ShaderNodeMath", operation="MULTIPLY")
+        nt.links.new(dens.outputs[0], por.inputs[0])
+        nt.links.new(caida.outputs[0], por.inputs[1])
+        # bordes blandos: la densidad se apaga hacia la pared del cono, así no se ve el embudo
+        centro = nodo(nt, "ShaderNodeVectorMath", operation="SUBTRACT")
+        centro.inputs[1].default_value = (0.5, 0.5, 0.0)
+        nt.links.new(tc.outputs["Generated"], centro.inputs[0])
+        plano = nodo(nt, "ShaderNodeVectorMath", operation="MULTIPLY")
+        plano.inputs[1].default_value = (1.0, 1.0, 0.0)
+        nt.links.new(centro.outputs[0], plano.inputs[0])
+        radio = nodo(nt, "ShaderNodeVectorMath", operation="LENGTH")
+        nt.links.new(plano.outputs[0], radio.inputs[0])
+        # el cono se abre: arriba el borde está en r=0,5, abajo en r≈0,08 → el radio útil crece con Z
+        lim = nodo(nt, "ShaderNodeMath", operation="MULTIPLY_ADD")
+        nt.links.new(sep.outputs["Z"], lim.inputs[0])
+        lim.inputs[1].default_value, lim.inputs[2].default_value = 0.40, 0.08
+        rel = nodo(nt, "ShaderNodeMath", operation="DIVIDE")
+        nt.links.new(sal(radio, "Value"), rel.inputs[0])
+        nt.links.new(lim.outputs[0], rel.inputs[1])
+        borde = nodo(nt, "ShaderNodeMapRange")
+        borde.inputs["From Min"].default_value, borde.inputs["From Max"].default_value = 0.35, 1.0
+        borde.inputs["To Min"].default_value, borde.inputs["To Max"].default_value = 1.0, 0.0
+        nt.links.new(rel.outputs[0], borde.inputs["Value"])
+        por2 = nodo(nt, "ShaderNodeMath", operation="MULTIPLY")
+        nt.links.new(por.outputs[0], por2.inputs[0])
+        nt.links.new(borde.outputs[0], por2.inputs[1])
+        nt.links.new(por2.outputs[0], pv.inputs["Density"])
         nt.links.new(pv.outputs[0], nt.nodes["Material Output"].inputs["Volume"])
         col.data.materials.append(mv)
 
@@ -577,7 +770,7 @@ def sembrar(moldes, centro_x, centro_zw, lado, densidad_extra=1.0, hoy=False):
             zw = centro_zw - lado / 2 + azar.random() * lado
             if not regla(x, zw):
                 continue
-            h = altura_web(x, zw)
+            h = altura(x, zw)
             if h < NIVEL_AGUA + 0.15:
                 continue
             puntos.setdefault((nombre, regla), []).append((x, -zw, h - 0.05, azar.uniform(0, 6.283), azar.uniform(e0, e1),
@@ -610,38 +803,53 @@ def sembrar(moldes, centro_x, centro_zw, lado, densidad_extra=1.0, hoy=False):
 # dinosaurios (Meshy o Mac) en sus lugares
 # ------------------------------------------------------------------------------------------
 
+def modelo_de(carpeta_modelos, especie):
+    """El mejor modelo que haya de la especie: el de Meshy refinado (modelos/<especie>/) o el
+    que se exportó de la Mac (modelos_mac/)."""
+    for cand in (os.path.join(carpeta_modelos, especie, f"{especie}_alto.glb"),
+                 os.path.join(carpeta_modelos, "..", "modelos_mac", f"{especie}_rt.glb")):
+        if os.path.exists(cand):
+            return cand
+    return None
+
+
+def coleccion_de(especie, ruta):
+    """Importa el GLB una sola vez en una colección fuera de la escena. Cada lugar la usa como
+    instancia: así viaja entera (armadura + malla hija) y no pesa en memoria."""
+    antes = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=ruta)
+    nuevos = [o for o in bpy.data.objects if o not in antes]
+    col = bpy.data.collections.new(f"dino_{especie}")
+    for o in nuevos:
+        for c in list(o.users_collection):
+            c.objects.unlink(o)
+        col.objects.link(o)
+    return col
+
+
 def poner_dinosaurios(carpeta_modelos, cerca_x, radio=90):
     puestos, faltan = 0, set()
-    moldes = {}
+    colecciones = {}
     for especie, lugares in ESPECIES_LUGARES.items():
         for (x, zw, rumbo) in lugares:
             if abs(x - cerca_x) > radio:
                 continue
             if zw is None:
                 zw = cauce(x) + 9.5
-            ruta = None
-            for cand in (os.path.join(carpeta_modelos, especie, f"{especie}_alto.glb"),
-                         os.path.join(carpeta_modelos, "..", "modelos_mac", f"{especie}_rt.glb")):
-                if os.path.exists(cand):
-                    ruta = cand
-                    break
+            ruta = modelo_de(carpeta_modelos, especie)
             vacio = bpy.data.objects.new(f"SLOT_{especie}", None)
             vacio.empty_display_type = "SINGLE_ARROW"
-            vacio.location = (x, -zw, altura_web(x, zw))
+            vacio.location = (x, -zw, altura(x, zw))
             vacio.rotation_euler.z = rumbo
             bpy.context.scene.collection.objects.link(vacio)
             if not ruta:
                 faltan.add(especie)
                 continue
-            if especie not in moldes:
-                antes = set(bpy.data.objects)
-                bpy.ops.import_scene.gltf(filepath=ruta)
-                moldes[especie] = [o for o in bpy.data.objects if o not in antes and o.parent is None]
-            for raiz in moldes[especie]:
-                c = raiz.copy()
-                bpy.context.scene.collection.objects.link(c)
-                c.parent = vacio
-                c.location = (0, 0, 0)
+            if especie not in colecciones:
+                print(f"   {especie}: {os.path.relpath(ruta, carpeta_modelos)}", flush=True)
+                colecciones[especie] = coleccion_de(especie, ruta)
+            vacio.instance_type = "COLLECTION"
+            vacio.instance_collection = colecciones[especie]
             puestos += 1
     return puestos, sorted(faltan)
 
@@ -655,11 +863,15 @@ def camara(cap, cuadros, animar):
     bpy.context.scene.collection.objects.link(cam)
     cam.data.lens = 35
     cam.data.sensor_width = 36
+    # la cámara nueva corta a 1000 m: se comía la columna de ceniza (a 1,2 km) y el anillo de
+    # horizonte (a 3 km). Hasta 8 km entra todo el mundo.
+    cam.data.clip_start = 0.1
+    cam.data.clip_end = 8000
     mira = web_a_blender(cap["mira"])
     desde, hasta = web_a_blender(cap["desde"]), web_a_blender(cap["hasta"])
 
     def ubicar(p):
-        suelo = altura_web(p.x, -p.y)
+        suelo = altura(p.x, -p.y)
         p.z = max(p.z, suelo + 1.7)
         cam.location = p
         cam.rotation_euler = (mira - p).to_track_quat("-Z", "Y").to_euler()
@@ -673,10 +885,11 @@ def camara(cap, cuadros, animar):
             cam.keyframe_insert("rotation_euler", frame=f)
     else:
         ubicar(desde.lerp(hasta, 0.5))
-    # profundidad de campo: foco a 12 m (donde andan los animales cercanos), f/4
+    # profundidad de campo: foco donde andan los animales cercanos (12 m salvo que el capítulo
+    # diga otra cosa), f/4. En "hoy" la cámara mira un paisaje: foco lejos y f/8, todo nítido.
     cam.data.dof.use_dof = True
-    cam.data.dof.focus_distance = 12.0
-    cam.data.dof.aperture_fstop = 4.0
+    cam.data.dof.focus_distance = cap.get("foco", 12.0)
+    cam.data.dof.aperture_fstop = cap.get("f", 4.0)
     bpy.context.scene.camera = cam
     return cam
 
@@ -766,11 +979,17 @@ def hacer_capitulo(clave, a):
     cx, czw = centro.x, -centro.y
     lado = 240.0 if clave != "hoy" else 300.0
     hoy = bool(cap.get("hoy"))
-    t = terreno(cx + 40, czw, lado, 0.6 if a.calidad == "prueba" else 0.35, hoy, cap["ceniza"])
+    MODO["hoy"] = hoy
+    adelante = -40 if hoy else 40           # el terreno fino, hacia donde mira la cámara
+    t = terreno(cx + adelante, czw, lado, 0.6 if a.calidad == "prueba" else 0.35, hoy, cap["ceniza"])
     if hay_rio(cx) > 0.2 and not hoy:
         agua(cx + 40, czw, lado)
-    horizonte(cx, czw, t.data.materials[0])
-    cielo(*cap["sol"], cap["bruma"], volumetrica, cap["ceniza"])
+    if hoy:
+        estratos = barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]))
+        horizonte(cx, czw, estratos.data.materials[0])
+    else:
+        horizonte(cx, czw, t.data.materials[0])
+    cielo(*cap["sol"], cap["bruma"], volumetrica, cap["ceniza"], limpio=hoy)
     volcan(cap["volcan"])
 
     moldes = {}
@@ -780,7 +999,8 @@ def hacer_capitulo(clave, a):
             moldes[nombre] = m
     densidad = 0.35 if a.calidad == "prueba" else 1.0
     n_plantas = sembrar(moldes, cx + 40, czw, lado * 0.8, densidad, hoy)
-    puestos, faltan = poner_dinosaurios(os.path.abspath(a.modelos), cx)
+    # hoy no hay animales vivos: sólo el paisaje (los fósiles los pone la capa interactiva)
+    puestos, faltan = (0, []) if hoy else poner_dinosaurios(os.path.abspath(a.modelos), cx)
 
     cuadros = int(a.segundos * 30)
     camara(cap, cuadros, a.animar)
