@@ -39,6 +39,26 @@
             }
         }
     };
+    // Proyecto nuevo sin perder nada: si hay algo abierto, se guarda antes. Con archivo, en su
+    // lugar; sin archivo, como respaldo en ae_puente/respaldos/ (sólo en la PC, no va a git).
+    // Antes el trabajo se frenaba, y un sólido de prueba del propio puente lo trababa (28/09).
+    $.global.PUENTE.proyectoNuevo = function () {
+        if (app.project && app.project.numItems > 0) {
+            if (app.project.file) {
+                app.project.save();
+                informe.push("guardado antes de seguir: " + app.project.file.fsName);
+            } else {
+                var carpeta = new Folder(datos.raiz + "/fns2026/ae_puente/respaldos");
+                if (!carpeta.exists) { carpeta.create(); }
+                var d = new Date();
+                var nombre = "respaldo_" + d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) +
+                             "_" + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2) + ".aep";
+                app.project.save(new File(carpeta.fsName + "/" + nombre));
+                informe.push("proyecto sin guardar respaldado en ae_puente/respaldos/" + nombre);
+            }
+        }
+        app.newProject();
+    };
     $.global.FNS_PUENTE = true;          // los scripts del proyecto no abren diálogos ni alertas
 
     function json(v) {

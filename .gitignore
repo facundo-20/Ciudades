@@ -16,3 +16,7 @@ fns2026/correr_todo.log
 fns2026/escenas/render/
 # Salida de construir_triasico.py: binarios que se regeneran con el script
 fns2026/escenas/triasico/salida/
+
+# respaldos del puente de After: sólo en la PC
+fns2026/ae_puente/respaldos/
+fns2026/ae_puente/trabajo_actual.json
