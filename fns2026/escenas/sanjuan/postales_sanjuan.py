@@ -56,7 +56,7 @@ POSTALES = {
     "leoncito": dict(
         titulo="Pampa El Leoncito · Calingasta", terreno="pampa", sol=(13, 262),
         ojo=(-30, -8, 1.6), mira=(60, 10, 4), hito=("carro_velero", (24, 4), 90),
-        andes=True, observatorio=(900, 2200), extra=[("exaeretodon", 18, -14, 2)]),
+        andes=True, extra=[("exaeretodon", 18, -14, 2)]),
     "cuesta": dict(
         titulo="Dique Cuesta del Viento · Rodeo, Iglesia", terreno="ripio", sol=(40, 200),
         ojo=(-40, -30, 1.8), mira=(900, 420, -10), hito=None, lago=(700, 420, 380), mirador=28,
@@ -639,10 +639,11 @@ def hacer_postal(clave, a):
         b = T.barrancas((ox, -oy), (p["mira"][0], -p["mira"][1]), distancia=260, abertura=130)
         b.location.z -= 6
     if p.get("andes"):
-        cordillera(ox, oy, rumbo_mira, 9000, 2600)                 # la cordillera, 9 km o más
-        cordillera(ox, oy, rumbo_mira + 10, 3200, 520, 150, False)  # la precordillera delante
+        # 170°: la panorámica del LED ve ~81° y con 110° se veían los extremos cortados como paredes
+        cordillera(ox, oy, rumbo_mira, 9000, 2600, 170)             # la cordillera, 9 km o más
+        cordillera(ox, oy, rumbo_mira + 10, 3200, 520, 170, False)  # la precordillera delante
     if p.get("sierras"):
-        cordillera(ox, oy, rumbo_mira, 7000, 900, 140, False)       # sierras de Zonda y Chica de Zonda
+        cordillera(ox, oy, rumbo_mira, 7000, 900, 170, False)       # sierras de Zonda y Chica de Zonda
     if p.get("lago"):
         lx, ly, radio = p["lago"]
         bpy.ops.mesh.primitive_circle_add(vertices=128, radius=radio * 1.25, fill_type="NGON", location=(lx + radio * 0.3, ly, -0.8))
