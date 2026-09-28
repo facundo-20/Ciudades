@@ -7,7 +7,8 @@
       "largo_m": 4.0,
       "alto_m": 1.1,
       "rig": true,
-      "destino": "dinosaurio"
+      "destino": "dinosaurio",
+      "existe_en_mac": "~/Documents/Ischigualasto/dinos/herrerasaurus.fbx"
     },
     {
       "nombre": "eoraptor",
@@ -15,7 +16,8 @@
       "largo_m": 1.0,
       "alto_m": 0.35,
       "rig": true,
-      "destino": "dinosaurio"
+      "destino": "dinosaurio",
+      "existe_en_mac": "~/Documents/Ischigualasto/dinos/eoraptor.fbx"
     },
     {
       "nombre": "panphagia",
@@ -39,7 +41,8 @@
       "largo_m": 1.2,
       "alto_m": 0.35,
       "rig": true,
-      "destino": "dinosaurio"
+      "destino": "dinosaurio",
+      "existe_en_mac": "~/Documents/Ischigualasto/dinos/raptor.fbx (revisar anatomía: el 'raptor' de Meshy)"
     },
     {
       "nombre": "hyperodapedon",
@@ -83,7 +86,8 @@
       "destino": "paisaje",
       "largo_m": 6.0,
       "poligonos": 120000,
-      "prompt": "El Hongo rock formation of Ischigualasto Argentina, tall eroded mushroom-shaped hoodoo, thin weathered pedestal of pale grey-beige sandstone topped by a wider cap of harder sandstone, deep wind erosion grooves, layered strata, photorealistic geology"
+      "prompt": "El Hongo rock formation of Ischigualasto Argentina, tall eroded mushroom-shaped hoodoo, thin weathered pedestal of pale grey-beige sandstone topped by a wider cap of harder sandstone, deep wind erosion grooves, layered strata, photorealistic geology",
+      "existe_en_mac": "~/Documents/Ischigualasto/assets/valle_luna_result.glb (Hongo + Submarino juntos)"
     },
     {
       "nombre": "bochas",
@@ -111,7 +115,8 @@
       "destino": "paisaje",
       "largo_m": 10.0,
       "poligonos": 120000,
-      "prompt": "El Submarino rock formation of Ischigualasto Argentina, long eroded grey-beige sandstone ridge shaped like a submarine hull with a vertical conning-tower-like rock on top, wind erosion grooves, layered strata, photorealistic geology"
+      "prompt": "El Submarino rock formation of Ischigualasto Argentina, long eroded grey-beige sandstone ridge shaped like a submarine hull with a vertical conning-tower-like rock on top, wind erosion grooves, layered strata, photorealistic geology",
+      "existe_en_mac": "~/Documents/Ischigualasto/assets/valle_luna_result.glb (Hongo + Submarino juntos)"
     }
   ]
 }

@@ -131,6 +131,8 @@ def main():
     ap.add_argument("--simular", action="store_true", help="sin Meshy, con modelos de prueba")
     ap.add_argument("--rehacer", action="store_true", help="volver a refinar aunque ya esté hecho")
     ap.add_argument("--no-abrir", action="store_true")
+    ap.add_argument("--incluir-existentes", action="store_true",
+                    help="regenerar también lo que ya existe en la Mac (por defecto se saltea: no hay doble trabajo)")
     a = ap.parse_args()
 
     lista = json.load(open(LISTA, encoding="utf-8"))["modelos"]
@@ -138,6 +140,10 @@ def main():
         lista = [m for m in lista if m["nombre"] in a.solo]
     elif a.destino != "todos":
         lista = [m for m in lista if m.get("destino") == a.destino]
+    if not a.incluir_existentes:
+        for m in [m for m in lista if m.get("existe_en_mac")]:
+            print(f"   {m['nombre']}: ya existe en la Mac ({m['existe_en_mac']}), no se regenera")
+        lista = [m for m in lista if not m.get("existe_en_mac")]
     if not lista:
         sys.exit("No hay modelos que coincidan.")
 
