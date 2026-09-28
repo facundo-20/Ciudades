@@ -21,8 +21,8 @@
 
 ## Resumen
 
-- **Créditos:** había 1.533 y quedan 882. Se gastaron unos 650.
-- **Modelos:** 19 bajados y refinados a escala real (FBX y GLB en tres niveles), cada uno con su vista previa en `<nombre>/<nombre>_vista.png`.
+- **Créditos:** ver "Gasto y cómo se frena" arriba (quedan 816).
+- **Modelos:** 21 bajados y refinados a escala real (FBX y GLB en tres niveles), cada uno con su vista previa en `<nombre>/<nombre>_vista.png`.
 - **Qué va a git:** los FBX y GLB completos no. Se regeneran con `correr_todo.py`, que retoma por `modelos_meshy/*/tareas.json` sin pagar de nuevo. Sí van las vistas y, para la web, los GLB de nivel medio.
 
 ## Animales (escala por largo real)
