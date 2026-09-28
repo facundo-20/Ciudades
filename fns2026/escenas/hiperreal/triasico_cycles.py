@@ -345,7 +345,44 @@ def material_suelo(hoy=False, ceniza=0.0):
         borde.inputs["From Min"].default_value, borde.inputs["From Max"].default_value = 0.0, 0.035
         borde.inputs["To Min"].default_value, borde.inputs["To Max"].default_value = 1.0, 0.0
         l.new(sal(placas, "Distance"), borde.inputs["Value"])
-        suelo = mezcla(borde.outputs[0], suelo, (0.12, 0.105, 0.09))
+        # las grietas sólo en manchones (en el video el suelo es arena y ripio suelto casi siempre)
+        manchon = ruido(0.045, 3)
+        corte = nodo(nt, "ShaderNodeMapRange")
+        corte.inputs["From Min"].default_value, corte.inputs["From Max"].default_value = 0.55, 0.62
+        l.new(sal(manchon, "Factor", "Fac"), corte.inputs["Value"])
+        grieta = nodo(nt, "ShaderNodeMath", operation="MULTIPLY")
+        l.new(borde.outputs[0], grieta.inputs[0])
+        l.new(corte.outputs[0], grieta.inputs[1])
+        suelo = mezcla(grieta.outputs[0], suelo, (0.12, 0.105, 0.09))
+        # ripio: piedritas oscuras sueltas
+        ripio = nodo(nt, "ShaderNodeTexVoronoi")
+        ripio.inputs["Scale"].default_value = 16
+        l.new(tc.outputs["Object"], ripio.inputs["Vector"])
+        piedra = nodo(nt, "ShaderNodeMapRange")
+        piedra.inputs["From Min"].default_value, piedra.inputs["From Max"].default_value = 0.10, 0.06
+        l.new(sal(ripio, "Distance"), piedra.inputs["Value"])
+        suelo = mezcla(piedra.outputs[0], suelo, (0.22, 0.19, 0.16))
+        # lomas del Valle Pintado: bandas gris, lila, rosado y crema según la altura
+        sepz = nodo(nt, "ShaderNodeSeparateXYZ")
+        l.new(tc.outputs["Object"], sepz.inputs[0])
+        capas_l = nodo(nt, "ShaderNodeTexNoise")
+        capas_l.noise_dimensions = "1D"
+        capas_l.inputs["Scale"].default_value = 0.35
+        capas_l.inputs["Detail"].default_value = 3
+        l.new(sepz.outputs["Z"], capas_l.inputs["W"])
+        rampa_l = nodo(nt, "ShaderNodeValToRGB")
+        crl = rampa_l.color_ramp
+        crl.elements[0].position, crl.elements[0].color = 0.3, (0.46, 0.43, 0.40, 1)
+        crl.elements[1].position, crl.elements[1].color = 0.7, (0.62, 0.55, 0.46, 1)
+        for pos_, col_ in ((0.45, (0.42, 0.36, 0.40)), (0.55, (0.55, 0.40, 0.36))):
+            e_ = crl.elements.new(pos_)
+            e_.color = (*col_, 1)
+        l.new(sal(capas_l, "Factor", "Fac"), rampa_l.inputs[0])
+        alto_l = nodo(nt, "ShaderNodeMapRange")
+        alto_l.inputs["From Min"].default_value, alto_l.inputs["From Max"].default_value = 0.8, 3.5
+        alto_l.inputs["To Max"].default_value = 0.55
+        l.new(sepz.outputs["Z"], alto_l.inputs["Value"])
+        suelo = mezcla(alto_l.outputs[0], suelo, rampa_l.outputs["Color"])
     if ceniza:
         suelo = mezcla(min(1.0, ceniza) * 0.9, suelo, (0.46, 0.45, 0.43))
     # texturas escaneadas CC0 (bajar_texturas_cc0.py): si están, reemplazan lo procedural
@@ -491,9 +528,10 @@ def material_estratos():
     rampa = nodo(nt, "ShaderNodeValToRGB")
     cr = rampa.color_ramp
     cr.interpolation = "CONSTANT"
-    colores = [(0.0, (0.30, 0.075, 0.035)), (0.36, (0.42, 0.12, 0.05)), (0.46, (0.55, 0.28, 0.13)),
-               (0.53, (0.36, 0.10, 0.05)), (0.60, (0.62, 0.45, 0.32)), (0.64, (0.40, 0.13, 0.06)),
-               (0.75, (0.25, 0.07, 0.04))]
+    # rojo anaranjado saturado con capas ocres y alguna clara (video y foto de referencia)
+    colores = [(0.0, (0.36, 0.08, 0.03)), (0.34, (0.52, 0.15, 0.05)), (0.44, (0.64, 0.30, 0.11)),
+               (0.51, (0.46, 0.12, 0.04)), (0.58, (0.70, 0.50, 0.33)), (0.62, (0.55, 0.18, 0.06)),
+               (0.74, (0.33, 0.08, 0.03))]
     cr.elements[0].position, cr.elements[0].color = colores[0][0], (*colores[0][1], 1)
     cr.elements[1].position, cr.elements[1].color = colores[1][0], (*colores[1][1], 1)
     for pos, col in colores[2:]:
@@ -536,11 +574,12 @@ def barrancas(ojo, mira, distancia=230.0, abertura=80.0):
     columnas = 260
     bm = bmesh.new()
     filas = []
-    perfil = [(-55, 0.0), (-28, 0.10), (-10, 0.22), (0, 0.32), (2, 0.55), (4, 0.80), (7, 0.97), (12, 1.0), (90, 0.93)]
+    # pared casi vertical sobre un talud corto, como las Barrancas Coloradas del video
+    perfil = [(-50, 0.0), (-26, 0.07), (-12, 0.15), (-2, 0.22), (0, 0.45), (1, 0.72), (2, 0.95), (4, 1.0), (90, 0.97)]
     for c in range(columnas):
         a = rumbo + math.radians(-abertura + 2 * abertura * c / (columnas - 1))
         carcava = abs(fbm2(c * 0.09, 3.3, 3)) * 2.2
-        alto = 34 + fbm2(c * 0.012, 9.1, 4) * 48       # mesetas altas y bajas, no un muro parejo
+        alto = 58 + fbm2(c * 0.012, 9.1, 4) * 55       # mesetas altas y bajas, no un muro parejo
         r0 = distancia + fbm2(c * 0.02, 1.7, 3) * 60 + carcava * 14
         col = []
         for dr, fh in perfil:
@@ -570,7 +609,7 @@ def barrancas(ojo, mira, distancia=230.0, abertura=80.0):
 # cielo, sol, niebla, volcán
 # ------------------------------------------------------------------------------------------
 
-def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False):
+def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False, nubes=0.0):
     esc = bpy.context.scene
     w = bpy.data.worlds.new("cielo_triasico")
     esc.world = w
@@ -596,7 +635,10 @@ def cielo(elevacion, azimut, bruma, volumetrica, ceniza, limpio=False):
         pass
     bg = nt.nodes["Background"]
     bg.inputs["Strength"].default_value = 0.12 * (1 - 0.6 * ceniza)
-    nt.links.new(sky.outputs["Color"], bg.inputs["Color"])
+    color_cielo = sky.outputs["Color"]
+    if nubes > 0:
+        color_cielo = capa_de_nubes(nt, color_cielo, nubes)
+    nt.links.new(color_cielo, bg.inputs["Color"])
     # La niebla NO va en el mundo: el volumen del mundo es infinito y en kilómetros de horizonte
     # se come toda la luz del cielo y del sol (en calidad media salían 5 de 6 capítulos negros,
     # 28/09). Va en una caja local alrededor de la escena: ver bruma_local().
@@ -634,6 +676,65 @@ def bruma_local(centro, densidad, ceniza):
     caja.data.materials.append(m)
     caja.visible_shadow = True
     return caja
+
+
+def capa_de_nubes(nt, color_cielo, cantidad):
+    """Nubes en el mismo cielo físico (sin volumen: livianas para el LED). Como en el video de
+    referencia de Ischigualasto: cirros estirados sobre un azul profundo y, con más cantidad,
+    una capa baja que vela el sol. El brillo sale del propio cielo (luminancia × 2,4), así las
+    nubes quedan en escala con la luz y no parecen pegadas."""
+    tc = nodo(nt, "ShaderNodeTexCoord")
+    sep = nodo(nt, "ShaderNodeSeparateXYZ")
+    nt.links.new(tc.outputs["Generated"], sep.inputs[0])
+    # proyección a un plano de nubes: (x, y) / (z + 0,06) → las nubes se achican hacia el horizonte
+    denom = nodo(nt, "ShaderNodeMath", operation="ADD")
+    nt.links.new(sep.outputs["Z"], denom.inputs[0])
+    denom.inputs[1].default_value = 0.06
+    u = nodo(nt, "ShaderNodeMath", operation="DIVIDE")
+    nt.links.new(sep.outputs["X"], u.inputs[0])
+    nt.links.new(denom.outputs[0], u.inputs[1])
+    v = nodo(nt, "ShaderNodeMath", operation="DIVIDE")
+    nt.links.new(sep.outputs["Y"], v.inputs[0])
+    nt.links.new(denom.outputs[0], v.inputs[1])
+    plano = nodo(nt, "ShaderNodeCombineXYZ")
+    nt.links.new(u.outputs[0], plano.inputs["X"])
+    nt.links.new(v.outputs[0], plano.inputs["Y"])
+    # cirros: ruido estirado en un eje (el viento de altura los peina)
+    peine = nodo(nt, "ShaderNodeMapping")
+    peine.inputs["Scale"].default_value = (0.35, 1.6, 1.0)
+    peine.inputs["Rotation"].default_value = (0, 0, math.radians(35))
+    nt.links.new(plano.outputs[0], peine.inputs["Vector"])
+    cirro = nodo(nt, "ShaderNodeTexNoise")
+    cirro.inputs["Scale"].default_value = 1.4
+    cirro.inputs["Detail"].default_value = 12
+    cirro.inputs["Roughness"].default_value = 0.62
+    cirro.inputs["Distortion"].default_value = 0.6
+    nt.links.new(peine.outputs[0], cirro.inputs["Vector"])
+    corte = nodo(nt, "ShaderNodeMapRange")
+    corte.inputs["From Min"].default_value = 0.62 - 0.22 * cantidad
+    corte.inputs["From Max"].default_value = 0.78 - 0.12 * cantidad
+    nt.links.new(sal(cirro, "Factor", "Fac"), corte.inputs["Value"])
+    # nada de nubes debajo del horizonte, y se funden al acercarse a él
+    horiz = nodo(nt, "ShaderNodeMapRange")
+    horiz.inputs["From Min"].default_value, horiz.inputs["From Max"].default_value = 0.0, 0.18
+    nt.links.new(sep.outputs["Z"], horiz.inputs["Value"])
+    mascara = nodo(nt, "ShaderNodeMath", operation="MULTIPLY")
+    nt.links.new(corte.outputs[0], mascara.inputs[0])
+    nt.links.new(horiz.outputs[0], mascara.inputs[1])
+    # color de la nube: el cielo pasado a gris y aclarado
+    bw = nodo(nt, "ShaderNodeRGBToBW")
+    nt.links.new(color_cielo, bw.inputs[0])
+    claro = nodo(nt, "ShaderNodeMath", operation="MULTIPLY")
+    nt.links.new(bw.outputs[0], claro.inputs[0])
+    claro.inputs[1].default_value = 2.4
+    gris = nodo(nt, "ShaderNodeCombineColor")
+    for k in ("Red", "Green", "Blue"):
+        nt.links.new(claro.outputs[0], gris.inputs[k])
+    mezcla = nodo(nt, "ShaderNodeMix", data_type="RGBA")
+    nt.links.new(mascara.outputs[0], mezcla.inputs["Factor"])
+    nt.links.new(color_cielo, mezcla.inputs["A"])
+    nt.links.new(gris.outputs[0], mezcla.inputs["B"])
+    return mezcla.outputs["Result"]
 
 
 def volcan(actividad):

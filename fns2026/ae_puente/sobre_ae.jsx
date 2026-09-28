@@ -18,6 +18,8 @@
     var informe = [];
     $.global.PUENTE = {
         raiz: datos.raiz,
+        // proyectos armados: se quedan en la PC (proyectos/ no va a git; un .aep pesa 12 MB)
+        proyectos: datos.raiz + "/fns2026/ae_puente/proyectos",
         informar: function (t) { informe.push(String(t)); },
         // un cuadro a JPG chico (la mitad del ancho, tope 1920) para revisarlo desde la nube
         captura: function (comp, segundos, nombre) {
@@ -30,8 +32,14 @@
                 capa.property("ADBE Transform Group").property("ADBE Scale").setValue([100 / 3, 100 / 3]);
                 capa.property("ADBE Transform Group").property("ADBE Position").setValue([chica.width / 2, chica.height / 2]);
                 chica.saveFrameToPng(segundos, png);
-                // en algunas versiones la escritura es asíncrona: se espera al archivo (30 s máx.)
-                for (var t = 0; t < 60 && !png.exists; t++) { $.sleep(500); }
+                // After 2026 escribe el cuadro en segundo plano: se espera a que el archivo exista y
+                // deje de crecer (hasta 2 min). Con 30 s llegaban 2 capturas de 7.
+                var previo = -1;
+                for (var t = 0; t < 240; t++) {
+                    if (png.exists && png.length > 0 && png.length === previo) { break; }
+                    previo = png.exists ? png.length : -1;
+                    $.sleep(500);
+                }
                 chica.remove();
                 informe.push("captura: " + nombre + ".png");
             } catch (e) {

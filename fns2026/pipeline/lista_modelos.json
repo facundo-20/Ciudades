@@ -133,11 +133,12 @@
     },
     {
       "nombre": "el_submarino",
-      "destino": "paisaje",
-      "largo_m": 10.0,
+      "destino": "hito",
+      "largo_m": 25.0,
       "poligonos": 120000,
-      "prompt": "El Submarino rock formation of Ischigualasto Argentina, long eroded grey-beige sandstone ridge shaped like a submarine hull with a vertical conning-tower-like rock on top, wind erosion grooves, layered strata, photorealistic geology",
-      "existe_en_mac": "~/Documents/Ischigualasto/assets/valle_luna_result.glb (Hongo + Submarino juntos)"
+      "prompt": "natural eroded sandstone rock formation in Ischigualasto Valley of the Moon, Argentina: a low elongated ridge of layered cream and ochre sandstone about 25 meters long, from which rise two tall slender stacked rock pillars with rounded caps, like chimneys, the tallest about 12 meters, strong horizontal bedding lines, fallen sandstone blocks at the base, desert rock only, no man-made objects, no vehicles",
+      "altura_m": 12.0,
+      "_fuente": "Foto de referencia de Facu (28/09): columnas de arenisca crema-ocre en capas; medidas [a confirmar]. El 1er intento de Meshy hizo un submarino de metal"
     },
     {
       "nombre": "dicroidium_meshy",
@@ -203,6 +204,13 @@
       "largo_m": 5.0,
       "prompt": "land yacht (land sailing cart, carrovelismo) used on the white Pampa El Leoncito, San Juan: three wheels, light metal frame, tall single colorful sail, seat for one pilot, no pilot",
       "_fuente": "Carrovelismo en Pampa El Leoncito (12 × 5 km)"
+    },
+    {
+      "nombre": "guanaco",
+      "destino": "fauna_actual",
+      "largo_m": 1.9,
+      "prompt": "adult guanaco (Lama guanicoe), wild South American camelid of Ischigualasto, San Juan, Argentina, standing alert, long slender neck, small head with large pointed ears, thick woolly coat light reddish-brown on the back and white on the belly and inner legs, grey face, short tail, slim legs with two-toed feet",
+      "_fuente": "Guanaco: cabeza-cuerpo 1,5-2 m, 1,1 m a la cruz; habita el Parque Ischigualasto (visto en el video de referencia)"
     }
   ]
 }

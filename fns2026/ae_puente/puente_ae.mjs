@@ -97,6 +97,7 @@ async function ciclo(ae) {
   if (hubo) {
     try {
       git('add', 'fns2026/ae_puente/hechos');
+      if (existsSync(join(RAIZ, 'fns2026', 'modelos_mac'))) git('add', 'fns2026/modelos_mac');   // p. ej. result.glb traído de Descargas
       git('commit', '-m', 'puente AE: resultados');
       try { git('push', 'origin', RAMA); } catch {
         // si la nube subió algo mientras After trabajaba: se mezcla y se reintenta una vez
