@@ -20,3 +20,6 @@ fns2026/escenas/triasico/salida/
 # respaldos del puente de After: sólo en la PC
 fns2026/ae_puente/respaldos/
 fns2026/ae_puente/trabajo_actual.json
+fns2026/ae_puente/proyectos/
+AE_salida/
+fns2026/ae_puente/hechos/**/*.aep

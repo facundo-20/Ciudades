@@ -416,8 +416,9 @@
             var calor = ajuste(comp, "reverberacion_calor");
             var td = efecto(calor, "ADBE Turbulent Displace");
             if (td) {
-                td.property(2).setValue(cap.atm === "calor" ? 14 : 8);   // cantidad
-                td.property(3).setValue(38);                             // tamaño
+                // suave: a 14 las barrancas se ondulaban como agua
+                td.property(2).setValue(cap.atm === "calor" ? 5 : 3);    // cantidad
+                td.property(3).setValue(60);                             // tamaño
                 td.property(5).setValue(2.2);                            // complejidad
                 td.property(6).expression = "time * 140";                // evolución
             }
@@ -474,7 +475,7 @@
         if (tinte) {
             tinte.property(1).setValue(cap.look.negro);
             tinte.property(2).setValue(cap.look.blanco);
-            tinte.property(3).setValue(cap.look.tinte);
+            tinte.property(3).setValue(cap.look.tinte * 0.6);     // a pleno aplanaba el color del render
         }
         var bc = efecto(color, "ADBE Brightness & Contrast 2");
         if (bc) { bc.property(1).setValue(cap.look.brillo); bc.property(2).setValue(cap.look.contraste); }
@@ -482,7 +483,8 @@
         if (!glowFinal) {
             // brillo suave en las luces altas: el "aire" de la fotografía de cine
             glowFinal = efecto(color, "ADBE Glo2");
-            if (glowFinal) { glowFinal.property(2).setValue(78); glowFinal.property(3).setValue(90); glowFinal.property(4).setValue(0.35); }
+            // el sustituto de Deep Glow se quedaba con todo el cielo (umbral 78 %) y lavaba la imagen
+            if (glowFinal) { glowFinal.property(2).setValue(93); glowFinal.property(3).setValue(45); glowFinal.property(4).setValue(0.2); }
         }
         var grano = efecto(color, "ADBE Noise");
         if (grano) { grano.property(1).setValue(1.6); }
@@ -613,13 +615,20 @@
             persiana.property(4).setValue(18);
             suavizar(persiana.property(1), 75);
         }
+        // En After 2026 cambió el orden de parámetros del desenfoque radial (el índice 3 pasó a ser
+        // un grupo y la pieza entera se caía). Se busca por nombre interno y, si no está, se sigue.
         var rb = efecto(entra, "ADBE Radial Blur");
         if (rb) {
-            rb.property(1).setValueAtTime(t0, 40);
-            rb.property(1).setValueAtTime(t0 + dur, 0);
-            rb.property(2).setValue([cx, H * 0.45]);
-            rb.property(3).setValue(2);                 // 1 = giro, 2 = zoom
-            suavizar(rb.property(1), 70);
+            try {
+                var cant = rb.property("ADBE Radial Blur-0001");
+                cant.setValueAtTime(t0, 40);
+                cant.setValueAtTime(t0 + dur, 0);
+                suavizar(cant, 70);
+                poner(rb, "ADBE Radial Blur-0002", [cx, H * 0.45]);
+                if (!poner(rb, "ADBE Radial Blur-0003", 2)) { poner(rb, "ADBE Radial Blur-0004", 2); }   // 2 = zoom
+            } catch (e) {
+                anotar("desenfoque radial de la transición: no se pudo configurar en esta versión (" + e.toString() + ")");
+            }
         }
         var cont = capaTexto(m, "231.000.000", 150, CFG.fuentes, CFG.crema, [cx, H * 0.46], 80);
         cont.name = "contador_millones_de_anios";
