@@ -541,9 +541,16 @@ def poner_modelo(ruta, x, y, z, rumbo_grados):
         raiz.rotation_euler = (0, 0, math.radians(rumbo_grados))
 
 
+# hitos donde la versión a medida es más fiel que la de Meshy: el arco del Bicentenario salió
+# de medio punto (romano) y el real es rebajado, 63 m de luz y sólo 6 m de alto (28/09)
+PREFERIR_A_MEDIDA = {"arco_bicentenario"}
+
+
 def poner_hito(carpeta_modelos, hito, terreno):
     nombre, (x, y), rumbo = hito
     ruta = os.path.join(carpeta_modelos, nombre, f"{nombre}_alto.glb")
+    if nombre in PREFERIR_A_MEDIDA:
+        ruta = ""
     z = altura_suelo(terreno, x, y) - 0.05
     if os.path.exists(ruta):
         poner_modelo(ruta, x, y, z, rumbo)
