@@ -54,6 +54,9 @@ ESTILO = {
     "maqueta": ("miniature diorama, handcrafted scale model look, soft studio light, no text"),
     # El paisaje va a escala real y fotorrealista: PBR con rugosidad y normales de roca
     # de verdad, luz de mediodía dura del desierto sanjuanino, nada de look de maqueta.
+    # hitos de San Juan hoy: arquitectura y formaciones reales, a escala, luz de día clara
+    "hito": ("photorealistic real-world landmark asset at true scale, PBR materials with detailed albedo roughness "
+             "and normal, clear daylight, isolated on plain background, whole structure visible, no people, no text, no watermark"),
     "flora": ("photorealistic plant asset, real botanical scale, PBR materials with detailed albedo roughness "
               "and normal, isolated on plain background, full plant visible, no text, no watermark"),
     "paisaje": ("photorealistic terrain asset, real geological scale, PBR materials with "

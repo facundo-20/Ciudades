@@ -114,7 +114,8 @@
       "destino": "paisaje",
       "largo_m": 0.8,
       "poligonos": 8000,
-      "prompt": "spherical sandstone concretion from Cancha de Bochas Ischigualasto, round grey-brown stone ball, weathered pitted surface, partially embedded in cracked clay, photorealistic"
+      "prompt": "spherical sandstone concretion from Cancha de Bochas Ischigualasto, round grey-brown stone ball, weathered pitted surface, partially embedded in cracked clay, photorealistic",
+      "_fuente": "concreciones de 5-10 cm hasta 90 cm de diámetro, 220-225 Ma"
     },
     {
       "nombre": "suelo_arcilla",
@@ -165,6 +166,43 @@
       "largo_m": 12.0,
       "poligonos": 150000,
       "prompt": "Triassic voltzialean conifer tree 12 meters tall, straight trunk, tiered horizontal branches with dense scale-like needle foliage, photorealistic botanical reconstruction"
+    },
+    {
+      "nombre": "campanario_catedral",
+      "destino": "hito",
+      "largo_m": 9.0,
+      "altura_m": 50.0,
+      "prompt": "the free-standing modern bell tower (campanile) of the Cathedral of San Juan Bautista in San Juan, Argentina, built 1979, tall slender rectangular tower with walls of reddish brick and dark reddish slate stone, straight white concrete columns, open belfry at the top with bells, gabled roof, modernist architecture",
+      "_fuente": "Catedral inaugurada 16/12/1979 (Ramos Correas y Vallhonrat); campanario separado, ladrillo y laja rojiza, columnas blancas. Altura 50 m [a confirmar]"
+    },
+    {
+      "nombre": "arco_bicentenario",
+      "destino": "hito",
+      "largo_m": 63.0,
+      "prompt": "the monumental entrance arch of the Teatro del Bicentenario in San Juan, Argentina: one very wide shallow concrete arch 63 meters of free span and about 6 meters high, clad in pale cream travertine marble plates, modern minimalist architecture, standing alone",
+      "_fuente": "Arco de 63 m de luz y 6 m de alto, 9.000 placas de travertino sanjuanino (Pasinato y Bianchi Bolzán)"
+    },
+    {
+      "nombre": "cerro_alcazar",
+      "destino": "hito",
+      "largo_m": 400.0,
+      "altura_m": 120.0,
+      "prompt": "Cerro Alcázar near Barreal, San Juan, Argentina: eroded badland hill of soft Triassic sediments shaped like a castle, rounded towers and vertical erosion grooves, polychrome horizontal bands of cream, pale grey, ochre, pink and rust red, arid ground around",
+      "_fuente": "Sedimentos triásicos, erosión eólica e hídrica, policromía. Medidas aproximadas [a confirmar]"
+    },
+    {
+      "nombre": "observatorio_casleo",
+      "destino": "hito",
+      "largo_m": 30.0,
+      "prompt": "astronomical observatory of CASLEO in El Leoncito National Park, San Juan, Argentina: white cylindrical building with a large silver metal hemispherical telescope dome, small annex buildings, on a rocky Andean mountain ridge",
+      "_fuente": "Complejo Astronómico El Leoncito, Calingasta"
+    },
+    {
+      "nombre": "carro_velero",
+      "destino": "hito",
+      "largo_m": 5.0,
+      "prompt": "land yacht (land sailing cart, carrovelismo) used on the white Pampa El Leoncito, San Juan: three wheels, light metal frame, tall single colorful sail, seat for one pilot, no pilot",
+      "_fuente": "Carrovelismo en Pampa El Leoncito (12 × 5 km)"
     }
   ]
 }

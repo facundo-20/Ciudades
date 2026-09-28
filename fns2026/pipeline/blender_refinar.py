@@ -43,6 +43,7 @@ NIVELES = {
     "hueso":      {"alto": 15000, "medio": 6000,  "bajo": 1500},
     "maqueta":    {"alto": 120000, "medio": 50000, "bajo": 15000},
     "paisaje":    {"alto": 150000, "medio": 60000, "bajo": 12000},
+    "hito":       {"alto": 150000, "medio": 60000, "bajo": 12000},
     "flora":      {"alto": 120000, "medio": 40000, "bajo": 10000},
 }
 TEXTURA_MAX = {"alto": 2048, "medio": 2048, "bajo": 1024}
@@ -54,6 +55,7 @@ def argumentos():
     ap.add_argument("entrada")
     ap.add_argument("salida")
     ap.add_argument("--largo", type=float, required=True, help="medida mayor horizontal, en metros")
+    ap.add_argument("--altura", type=float, default=None, help="si se da, escala por la altura real (torres, cerros)")
     ap.add_argument("--destino", default="dinosaurio", choices=list(NIVELES))
     ap.add_argument("--nombre", default=None)
     ap.add_argument("--sin-vista", action="store_true")
@@ -143,17 +145,18 @@ def soltar_transformacion_animada(obj):
                 curvas.remove(fc)
 
 
-def escalar_y_apoyar(malla, largo):
+def escalar_y_apoyar(malla, largo, altura=None):
     raiz = raiz_de(malla)
     if raiz is not malla:
         soltar_transformacion_animada(raiz)
     # la malla hija de una armadura puede tener su propia escala: se aplica primero
     bpy.context.view_layer.update()
     mn, mx = caja([malla])
-    actual = max(mx.x - mn.x, mx.y - mn.y)
+    # una torre o un cerro se conocen por su altura, un animal por su largo
+    actual = (mx.z - mn.z) if altura else max(mx.x - mn.x, mx.y - mn.y)
     if actual <= 0:
-        raise SystemExit("La malla no tiene medida horizontal.")
-    f = largo / actual
+        raise SystemExit("La malla no tiene medida.")
+    f = (altura or largo) / actual
     raiz.scale = raiz.scale * f
     bpy.context.view_layer.update()
     mn, mx = caja([malla])
@@ -284,7 +287,7 @@ def main():
     importar(os.path.abspath(a.entrada))
     malla = unir_mallas(nombre)
     tri_original = triangulos(malla)
-    factor = escalar_y_apoyar(malla, a.largo)
+    factor = escalar_y_apoyar(malla, a.largo, a.altura)
     limpiar_malla(malla)
 
     informe = {"nombre": nombre, "destino": a.destino, "triangulos_meshy": tri_original,

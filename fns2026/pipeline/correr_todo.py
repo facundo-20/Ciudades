@@ -61,6 +61,8 @@ def refinar(blender, entrada, salida, item):
                      "--largo", str(item["largo_m"]),
                      "--destino", item.get("destino", "dinosaurio"),
                      "--nombre", item["nombre"]]
+    if item.get("altura_m"):
+        cmd += ["--altura", str(item["altura_m"])]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(os.path.join(salida, f"{item['nombre']}_informe.json")):
         raise RuntimeError("Blender falló:\n" + (r.stdout[-1500:] + r.stderr[-1500:]))
