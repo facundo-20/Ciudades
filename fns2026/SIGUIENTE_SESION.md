@@ -1,5 +1,26 @@
 # Para la próxima sesión
 
+## PRIMERO (sesión nueva, con `assets.meshy.ai` y `dl.polyhaven.org` habilitados)
+
+1. **Bajar los modelos ya pagos y pasarlos a FBX.**
+   ```bash
+   pip install bpy numpy pillow
+   python3 fns2026/pipeline/correr_todo.py --destino todos --no-abrir
+   ```
+   - Retoma por `fns2026/modelos_meshy/*/tareas.json`: sólo baja, no paga de nuevo.
+   - Incluye Saurosuchus y Exaeretodon.
+2. **Maqueta anatómica: mejora pedida por Facu, empezar por Herrerasaurus, Saurosuchus e Ischigualastia.**
+   - Blockout en Blender (Skin modifier sobre un esqueleto de puntos) con las medidas publicadas.
+   - De ahí salen vistas ortográficas propias.
+   - Esas vistas van a Meshy `v1/image-to-image`, que existe (probado el 28/09), para una vista realista que respete la silueta.
+   - Después `v1/multi-image-to-3d` → FBX.
+   - `v1/retexture` también existe: sirve para texturizar la malla de la maqueta tal cual.
+   - Las vistas se validan con un paleontólogo antes de gastar créditos.
+3. **Resto:**
+   - Texturas CC0 → re-render de los 6 capítulos con los dinosaurios.
+   - GLB medios a `experiencia/public/modelos` + `npm run probar`.
+   - Script de After: `fns2026/escenas/after_effects/`.
+
 ## Estado real al 28/09 (noche)
 
 ### Probado y funcionando
