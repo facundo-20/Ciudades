@@ -77,7 +77,9 @@ def _clave():
         cruda = m.group(0) if m else cruda
     k = "".join(c for c in cruda if c in _CLAVE_OK)
     if not k:
-        sys.exit("Falta MESHY_API_KEY. En Mac: export MESHY_API_KEY=... · En Windows: set MESHY_API_KEY=...")
+        # Sin clave a la vista: en claude.ai/code la clave va en "Credenciales de API" del entorno
+        # y el proxy de la sesión le agrega el Authorization a cada pedido sin que el script la vea.
+        return None
     return k
 
 
@@ -85,6 +87,11 @@ def diagnostico():
     """Revisa la clave (sin mostrarla) y hace un pedido mínimo de sólo lectura."""
     cruda = os.environ.get("MESHY_API_KEY", "") or "(desde ~/.meshy_api_key)"
     k = _clave()
+    if not k:
+        print("clave: no hay en el entorno ni en ~/.meshy_api_key → uso la credencial del proxy de la sesión")
+        r = _llamar("GET", f"{API}/v1/balance")
+        print(f"Meshy responde. Créditos: {r.get('balance', r)}")
+        return r
     print(f"clave: {len(k)} caracteres, empieza con '{k[:4]}'")
     if cruda != k:
         raros = sorted({repr(c) for c in cruda if c not in _CLAVE_OK})
@@ -105,8 +112,10 @@ def _url(tipo, id_tarea=None):
 
 def _llamar(metodo, url, cuerpo=None, intentos=4):
     datos = json.dumps(cuerpo).encode() if cuerpo is not None else None
+    clave = _clave()
+    encabezados = {"Authorization": f"Bearer {clave}"} if clave else {}
     req = urllib.request.Request(url, data=datos, method=metodo, headers={
-        "Authorization": f"Bearer {_clave()}",
+        **encabezados,
         "Content-Type": "application/json",
         "Accept": "application/json",
         # sin esto urllib manda "Python-urllib/3.x", que algunos firewalls rechazan con un 400/403 pelado
