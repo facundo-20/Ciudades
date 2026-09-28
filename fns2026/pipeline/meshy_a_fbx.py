@@ -57,6 +57,9 @@ ESTILO = {
     # hitos de San Juan hoy: arquitectura y formaciones reales, a escala, luz de día clara
     "hito": ("photorealistic real-world landmark asset at true scale, PBR materials with detailed albedo roughness "
              "and normal, clear daylight, isolated on plain background, whole structure visible, no people, no text, no watermark"),
+    # fauna de hoy (guanacos en Ischigualasto): mamíferos con pelo, nada del estilo triásico
+    "fauna_actual": ("photorealistic living animal at true scale, natural anatomy and fur, PBR materials, "
+                     "neutral daylight, plain background, full body side view, no text, no watermark"),
     "flora": ("photorealistic plant asset, real botanical scale, PBR materials with detailed albedo roughness "
               "and normal, isolated on plain background, full plant visible, no text, no watermark"),
     "paisaje": ("photorealistic terrain asset, real geological scale, PBR materials with "

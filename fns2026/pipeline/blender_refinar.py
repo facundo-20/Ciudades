@@ -44,6 +44,7 @@ NIVELES = {
     "maqueta":    {"alto": 120000, "medio": 50000, "bajo": 15000},
     "paisaje":    {"alto": 150000, "medio": 60000, "bajo": 12000},
     "hito":       {"alto": 150000, "medio": 60000, "bajo": 12000},
+    "fauna_actual": {"alto": 60000, "medio": 25000, "bajo": 8000},
     "flora":      {"alto": 120000, "medio": 40000, "bajo": 10000},
 }
 TEXTURA_MAX = {"alto": 2048, "medio": 2048, "bajo": 1024}

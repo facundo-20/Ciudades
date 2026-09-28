@@ -27,3 +27,33 @@ python3 postales_sanjuan.py -- salida/ [--postales hongo bochas alcazar leoncito
   - perspectiva aérea: se azulan con la distancia aunque la niebla volumétrica esté apagada.
 - **Hitos:** si todavía no hay modelo de Meshy, el hito se arma en Blender con sus medidas. Así la postal sale igual.
 - **Afuera a propósito:** la Difunta Correa, porque es un santuario religioso.
+
+## Dos eras con la misma cámara
+
+- `--era hoy`: el lugar como es hoy. Sigue el video de referencia de Ischigualasto:
+  - cirros sobre un azul profundo;
+  - suelo de arena y ripio, con grietas sólo en manchones;
+  - lomas con bandas gris, lila y rosado;
+  - jarillas y cardones;
+  - el alambrado de troncos del Hongo;
+  - guanacos.
+- `--era triasico`: el mismo encuadre hace 231 millones de años.
+  - Es una llanura con un brazo del río, bosque de *Dicroidium*, *Neocalamites* y helechos, y lluvias de temporada.
+  - Hay volcanes en el horizonte y todavía no hay Andes.
+  - Está la fauna de Ischigualasto: *Ischigualastia*, *Hyperodapedon*, *Exaeretodon*, *Saurosuchus*, *Sanjuansaurus* y *Panphagia*.
+- `--era ambas`: las dos. La del Triásico sale como `<postal>_triasico.png`.
+
+Con la misma cámara, en After se pasa de una era a la otra con una cortina de estratos.
+
+## Render final en GPU (en la M4 o las OMEN, con Blender 5.2)
+
+En la nube no hay placa de video: Cycles corre en el procesador y cada panorámica del LED tarda entre 8 y 40 minutos. Con GPU son minutos:
+
+```bash
+cd fns2026/escenas/sanjuan
+FNS_GPU=1 blender -b --factory-startup -P postales_sanjuan.py -- ../../render/postales --era ambas --calidad led
+cd ../hiperreal
+FNS_GPU=1 blender -b --factory-startup -P triasico_cycles.py -- ../../render/triasico --calidad led
+```
+
+En Windows, antes de esos comandos: `set FNS_GPU=1`, y usá la ruta completa de `blender.exe` de 5.2.
