@@ -39,6 +39,7 @@ PEDIDOS = {
     "multi_3d":    ("v1", "multi-image-to-3d"),
     "rig":         ("v1", "rigging"),
     "animacion":   ("v1", "animations"),
+    "retextura":   ("v1", "retexture"),
 }
 
 # Estilo común a todo el stand. Se agrega a cada prompt para que los 7 dinosaurios
@@ -167,7 +168,8 @@ def _llamar(metodo, url, cuerpo=None, intentos=4):
 #   · nada de caer solo de un camino al otro, y el rig (que falló en todos) sólo con MESHY_RIG=1
 # ---------------------------------------------------------------------------
 # Costos aproximados por paso (se mide el real con el saldo y queda en el CSV)
-COSTO_ESTIMADO = {"vistas": 10, "multi_3d": 30, "imagen_3d": 30, "texto_3d": 20, "rig": 5, "animacion": 3}
+COSTO_ESTIMADO = {"vistas": 10, "multi_3d": 30, "imagen_3d": 30, "texto_3d": 20, "rig": 5, "animacion": 3,
+                  "retextura": 10}
 _GASTO = {"saldo_inicial": None, "modelo": "?"}
 REGISTRO_GASTOS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "modelos", "gastos_meshy.csv")
 
@@ -412,6 +414,36 @@ def hacer(item, salida):
                 bajar_opcional(url, os.path.join(carpeta, f"{nombre}_{anim.replace('_fbx_url', '')}.fbx"))
 
     return carpeta
+
+
+# ---------------------------------------------------------------------------
+# Forma en Blender, textura con Meshy (desde el 28/09 es el camino por defecto)
+# ---------------------------------------------------------------------------
+# La geometría se hace en Blender con las medidas reales (gratis y exacta) y Meshy sólo pinta:
+# "retexture" sobre ese mismo modelo, con el color original del lugar. Cuesta ~10 créditos contra
+# ~40 de generar un modelo entero, y la forma no la inventa la IA.
+
+def retexturar(ruta_glb, prompt, carpeta, nombre):
+    import base64
+    _GASTO["modelo"] = nombre
+    os.makedirs(carpeta, exist_ok=True)
+    with open(ruta_glb, "rb") as f:
+        datos = base64.b64encode(f.read()).decode()
+    cuerpo = {
+        "model_url": "data:application/octet-stream;base64," + datos,
+        "text_style_prompt": prompt,
+        "enable_original_uv": True,      # respeta las UV de Blender: la textura cae donde debe
+        "enable_pbr": True,
+    }
+    _, r = paso(carpeta, "retextura", "retextura", cuerpo)
+    urls = r.get("model_urls", {})
+    salidas = {}
+    for fmt in ("fbx", "glb"):
+        if urls.get(fmt):
+            salidas[fmt] = bajar(urls[fmt], os.path.join(carpeta, f"{nombre}_textura.{fmt}"))
+    if not salidas:
+        raise SystemExit(f"{nombre}: la retextura terminó sin modelo: {list(r)}")
+    return salidas
 
 
 def main():
