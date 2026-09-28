@@ -54,11 +54,30 @@
     },
     {
       "nombre": "ischigualastia",
-      "prompt": "Ischigualastia jenseni, large Triassic dicynodont therapsid, quadrupedal, heavy barrel-shaped body, short tail, broad head with toothless turtle-like horny beak and NO tusks, sprawling stout forelimbs, thick wrinkled hairless reptilian skin, 3 meters long",
-      "largo_m": 3.0,
-      "alto_m": 1.2,
+      "prompt": "Ischigualastia jenseni, very large Late Triassic stahleckeriid dicynodont therapsid (not a dinosaur), quadrupedal, heavy barrel-shaped body, short tail, short tall skull with a toothless turtle-like horny beak, NO tusks, a pair of blunt bony caniniform bulges on the upper jaw, deep cheekbones angled upward, sturdy sprawling forelimbs, thick wrinkled hairless skin, 3.5 meters long",
+      "largo_m": 3.5,
+      "alto_m": 1.3,
       "rig": true,
-      "destino": "dinosaurio"
+      "destino": "dinosaurio",
+      "_fuente": "Cox 1962; Wikipedia Ischigualastia (sin colmillos, ~3,5 m, 1-2 t)"
+    },
+    {
+      "nombre": "saurosuchus",
+      "prompt": "Saurosuchus galilei, huge Late Triassic loricatan pseudosuchian (crocodile-line archosaur, NOT a dinosaur), apex predator, quadrupedal with erect pillar-like legs held under the body, very large deep narrow skull with long serrated teeth, two rows of bony armor plates (osteoderms) along the back, long heavy tail, scaly crocodilian skin, 6 meters long",
+      "largo_m": 6.0,
+      "alto_m": 1.5,
+      "rig": true,
+      "destino": "dinosaurio",
+      "_fuente": "Wikipedia Saurosuchus (5,5-7 m, hasta 590 kg); Fawcett 2024, Anat. Rec."
+    },
+    {
+      "nombre": "exaeretodon",
+      "prompt": "Exaeretodon argentinus, Late Triassic traversodontid cynodont (mammal relative, not a dinosaur), herbivore, quadrupedal with semi-erect limbs, broad deep skull with wide cheek teeth and small front incisors, stocky body, short tail, 1.8 meters long",
+      "largo_m": 1.8,
+      "alto_m": 0.55,
+      "rig": true,
+      "destino": "dinosaurio",
+      "_fuente": "Wikipedia Ischigualasto Formation (con Hyperodapedon, lo más abundante); hasta 1,8 m"
     },
     {
       "nombre": "hueso_craneo",
