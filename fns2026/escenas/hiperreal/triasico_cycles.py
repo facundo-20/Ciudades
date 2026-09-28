@@ -150,7 +150,7 @@ CAPITULOS = {
     "bosque":  dict(desde=(8, 2.2, 12), hasta=(62, 2.2, -4), mira=(120, 1, -20), sol=(40, 200), bruma=0.0035, ceniza=0, volcan=0.4),
     # llanura: la cámara a la altura de los ojos junto a la manada, mirando por la quebrada
     # al volcán; el punto de mira baja al tercio inferior del cono para que entre la columna
-    "llanura": dict(desde=(92, 3.4, 19), hasta=(114, 3.6, 9), mira=(1100, 150, -700), sol=(30, 160), bruma=0.0012, ceniza=0, volcan=1, foco=16),
+    "llanura": dict(desde=(92, 0.5, 19), hasta=(114, 0.5, 9), mira=(1100, 60, -700), sol=(30, 160), bruma=0.0012, ceniza=0, volcan=1, foco=22),
     "ceniza":  dict(desde=(128, 3.4, 4), hasta=(118, 5, 16), mira=(104, 0, -4), sol=(14, 170), bruma=0.012, ceniza=1, volcan=1),
     # hoy: parado en la arcilla gris cuarteada, las barrancas rojas al fondo, sol alto y
     # cielo limpio de San Juan (sin bruma: el aire del desierto es seco y transparente)
@@ -163,9 +163,10 @@ ESPECIES_LUGARES = {
     "herrerasaurus": [(35, -8, 2.8), (110, 10, 3.6)],
     "eoraptor": [(28, 6, 0.4), (31, 3, 0.9), (26, 9, 5.9)],
     "panphagia": [(45, 15, 1.1)],
-    "ischigualastia": [(114, 6.5, 2.4), (118.5, 4.5, 2.1), (121, 8.5, 2.6)],
+    # la manada a 20-27 m sobre la línea de vista al volcán (a 13 m quedaba debajo del cuadro)
+    "ischigualastia": [(119, 4, 2.4), (123, -1, 2.1), (126.5, 2.5, 2.6)],
     "eodromaeus": [(50, -10, 4.0)],
-    "sanjuansaurus": [(128, -2.5, 5.4)],
+    "sanjuansaurus": [(135, -8, 5.4)],
     # los mismos lugares que la población de la web
     "exaeretodon": [(-40, None, 1.0), (-44, None, 2.2), (-37, None, 0.4), (20, 12, 1.6), (23, 10, 2.0)],
     "saurosuchus": [(90, -25, 0.9)],
@@ -772,6 +773,22 @@ def arbol_gn(molde):
 
 
 # hoy: nada de plantas del Triásico, sólo piedras sueltas y concreciones sobre la arcilla
+# el recorrido de la cámara (x, z de la web) queda sin árboles: si no, una conífera de Meshy
+# de 12 m pegada al lente tapa todo el cuadro (pasó en el bosque el 28/09)
+CAMINO = {"desde": None, "hasta": None}
+PLANTAS_BAJAS = ("helecho",)
+
+
+def cerca_del_camino(x, zw, radio=5.0):
+    if not CAMINO["desde"]:
+        return False
+    ax, az = CAMINO["desde"]
+    bx, bz = CAMINO["hasta"]
+    vx, vz = bx - ax, bz - az
+    t = max(0.0, min(1.0, ((x - ax) * vx + (zw - az) * vz) / max(1e-6, vx * vx + vz * vz)))
+    return math.hypot(x - (ax + t * vx), zw - (az + t * vz)) < radio
+
+
 REGLAS_HOY = [
     ("roca_arenisca", 1.2, lambda x, z: True, (0.15, 0.6)),
 ]
@@ -793,6 +810,8 @@ def sembrar(moldes, centro_x, centro_zw, lado, densidad_extra=1.0, hoy=False):
             x = centro_x - lado / 2 + azar.random() * lado
             zw = centro_zw - lado / 2 + azar.random() * lado
             if not regla(x, zw):
+                continue
+            if nombre not in PLANTAS_BAJAS and cerca_del_camino(x, zw):
                 continue
             h = altura(x, zw)
             if h < NIVEL_AGUA + 0.15:
@@ -1020,6 +1039,8 @@ def hacer_capitulo(clave, a):
         if m:
             moldes[nombre] = m
     densidad = 0.35 if a.calidad == "prueba" else 1.0
+    CAMINO["desde"] = (cap["desde"][0], cap["desde"][2])
+    CAMINO["hasta"] = (cap["hasta"][0], cap["hasta"][2])
     n_plantas = sembrar(moldes, cx + 40, czw, lado * 0.8, densidad, hoy)
     # hoy no hay animales vivos: sólo el paisaje (los fósiles los pone la capa interactiva)
     puestos, faltan = (0, []) if hoy else poner_dinosaurios(os.path.abspath(a.modelos), cx)
