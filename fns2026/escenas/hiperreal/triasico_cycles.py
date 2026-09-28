@@ -48,6 +48,8 @@ CALIDADES = {
     "media": (1920, 1080, 128, True),
     "final": (1920, 1080, 512, True),
     "led": (5760, 1080, 384, True),
+    # el LED para revisar y armar en After sin esperar la noche entera: mismo encuadre, menos muestras
+    "led_rapida": (5760, 1080, 64, True),
 }
 
 # ------------------------------------------------------------------------------------------
@@ -979,6 +981,16 @@ def camara(cap, cuadros, animar):
     return cam
 
 
+def panoramica(cam):
+    """El LED es 16:3 (5760 × 1080). Con el sensor ajustado al ancho, el mismo 35 mm daría un
+    recorte de la vista 16:9, y After terminaba agrandando una franja borrosa. Se ajusta al alto:
+    el campo vertical queda igual que en 16:9 (32°) y el horizontal se abre a unos 81°."""
+    esc = bpy.context.scene
+    if esc.render.resolution_x / max(1, esc.render.resolution_y) > 2.5:
+        cam.data.sensor_fit = "VERTICAL"
+        cam.data.sensor_height = 20.25
+
+
 def configurar_render(ancho, alto, muestras, exposicion=None):
     esc = bpy.context.scene
     esc.render.engine = "CYCLES"
@@ -1012,6 +1024,8 @@ def configurar_render(ancho, alto, muestras, exposicion=None):
     vl.use_pass_mist = True
     esc.world.mist_settings.start = 2
     esc.world.mist_settings.depth = 400
+    if esc.camera:
+        panoramica(esc.camera)          # la cámara ya existe: se ajusta a la resolución final
 
 
 def pase_profundidad(ruta):
@@ -1070,7 +1084,7 @@ def hacer_capitulo(clave, a):
     if hay_rio(cx) > 0.2 and not hoy:
         agua(cx + 40, czw, lado)
     if hoy:
-        barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]))
+        barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]), abertura=130)   # 130°: la panorámica del LED ve 81°
     horizonte(cx, czw, t.data.materials[0])
     cielo(*cap["sol"], cap["bruma"], volumetrica, cap["ceniza"], limpio=hoy)
     if volumetrica:

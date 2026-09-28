@@ -636,7 +636,7 @@ def hacer_postal(clave, a):
     if p.get("barrancas"):
         # barrancas() trabaja en coordenadas de la web (x, z hacia el sur) y apoya sobre el
         # relieve completo de "hoy"; acá el suelo es más bajo, así que se hunde un poco
-        b = T.barrancas((ox, -oy), (p["mira"][0], -p["mira"][1]), distancia=260)
+        b = T.barrancas((ox, -oy), (p["mira"][0], -p["mira"][1]), distancia=260, abertura=130)
         b.location.z -= 6
     if p.get("andes"):
         cordillera(ox, oy, rumbo_mira, 9000, 2600)                 # la cordillera, 9 km o más
