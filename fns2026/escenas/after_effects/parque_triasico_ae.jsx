@@ -633,7 +633,9 @@
     // principal
     // ----------------------------------------------------------------------------------------
     if (!app.project) { app.newProject(); }
-    var carpeta = Folder.selectDialog("Elegí la carpeta de renders de Blender (la que tiene titulo/, rio/… o titulo.jpg, rio.jpg…)");
+    // desde el puente (fns2026/ae_puente) no hay nadie para contestar un diálogo
+    var carpeta = $.global.FNS_CARPETA ? new Folder($.global.FNS_CARPETA)
+                                       : Folder.selectDialog("Elegí la carpeta de renders de Blender (la que tiene titulo/, rio/… o titulo.jpg, rio.jpg…)");
     if (!carpeta) { return; }
 
     app.beginUndoGroup("Parque Triásico FNS 2026");
@@ -709,6 +711,12 @@
 
     maestro.openInViewer();
     app.endUndoGroup();
-    alert("Parque Triásico listo.\n\n" + informe.join("\n") +
-          "\n\nDuración: " + maestro.duration.toFixed(1) + " s · " + CFG.ancho + " × " + CFG.alto + " @ " + CFG.fps + " fps");
+    var resumen = "Parque Triásico listo.\n\n" + informe.join("\n") +
+          "\n\nDuración: " + maestro.duration.toFixed(1) + " s · " + CFG.ancho + " × " + CFG.alto + " @ " + CFG.fps + " fps";
+    if ($.global.FNS_PUENTE) {
+        $.global.PUENTE.informar(resumen);
+        $.global.FNS_MAESTRO = maestro;          // el trabajo del puente saca capturas de acá
+    } else {
+        alert(resumen);
+    }
 })();
