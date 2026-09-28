@@ -144,7 +144,7 @@ def main():
     blender = buscar_blender()
     if not blender:
         sys.exit("No encuentro Blender. Instalalo o poné su ruta en la variable BLENDER.")
-    if not a.simular and not os.environ.get("MESHY_API_KEY"):
+    if not a.simular and not (os.environ.get("MESHY_API_KEY") or os.path.exists(os.path.expanduser("~/.meshy_api_key"))):
         sys.exit("Falta MESHY_API_KEY (o usá --simular para probar sin Meshy).")
 
     if not a.simular:

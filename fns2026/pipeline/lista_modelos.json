@@ -105,6 +105,13 @@
       "largo_m": 20.0,
       "poligonos": 120000,
       "prompt": "Barrancas Coloradas red sandstone cliff wall of Talampaya and Ischigualasto, horizontal red and ochre strata, vertical erosion gullies, talus of fallen rocks at the base, photorealistic"
+    },
+    {
+      "nombre": "el_submarino",
+      "destino": "paisaje",
+      "largo_m": 10.0,
+      "poligonos": 120000,
+      "prompt": "El Submarino rock formation of Ischigualasto Argentina, long eroded grey-beige sandstone ridge shaped like a submarine hull with a vertical conning-tower-like rock on top, wind erosion grooves, layered strata, photorealistic geology"
     }
   ]
 }

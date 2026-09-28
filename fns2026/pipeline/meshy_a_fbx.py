@@ -68,6 +68,13 @@ def _clave():
     cuelan comillas, un espacio o un carácter invisible, y el encabezado Authorization
     queda mal armado. Se deja sólo lo que puede tener una clave de Meshy (msy_...)."""
     cruda = os.environ.get("MESHY_API_KEY", "")
+    archivo = os.path.expanduser("~/.meshy_api_key")          # donde la guarda el proyecto de la Mac
+    if not cruda and os.path.exists(archivo):
+        cruda = open(archivo, encoding="utf-8", errors="replace").read()
+        # si el archivo tiene un comando pegado (pasó en la Mac), se busca la clave adentro
+        import re
+        m = re.search(r"msy_[A-Za-z0-9_-]{16,}", cruda)
+        cruda = m.group(0) if m else cruda
     k = "".join(c for c in cruda if c in _CLAVE_OK)
     if not k:
         sys.exit("Falta MESHY_API_KEY. En Mac: export MESHY_API_KEY=... · En Windows: set MESHY_API_KEY=...")
@@ -76,7 +83,7 @@ def _clave():
 
 def diagnostico():
     """Revisa la clave (sin mostrarla) y hace un pedido mínimo de sólo lectura."""
-    cruda = os.environ.get("MESHY_API_KEY", "")
+    cruda = os.environ.get("MESHY_API_KEY", "") or "(desde ~/.meshy_api_key)"
     k = _clave()
     print(f"clave: {len(k)} caracteres, empieza con '{k[:4]}'")
     if cruda != k:
