@@ -374,6 +374,9 @@ function usarModelo(animal, gltf) {
   const caja = new THREE.Box3().setFromObject(modelo);
   const largo = Math.max(caja.max.x - caja.min.x, caja.max.z - caja.min.z) || 1;
   modelo.scale.setScalar(animal.esp.largo / largo);
+  // los modelos de Meshy miran a +Z (glTF) y el animal avanza por su +X local (rotation.y = rumbo):
+  // sin este giro caminaban de costado
+  modelo.rotation.y = Math.PI / 2;
   modelo.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.animal = animal; } });
   const p = animal.partes;
   p.cuerpo.visible = false;
