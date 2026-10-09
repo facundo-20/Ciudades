@@ -24,6 +24,7 @@ reconstrucción biomecánica.
 import argparse
 import json
 import math
+import re
 import os
 import sys
 
@@ -485,7 +486,7 @@ def hacer(especie, cfg, con_vista, origen=None, salida=None, tope_caras=0):
         bpy.ops.object.join()                  # Meshy a veces separa el cuerpo en varias piezas
     malla = bpy.context.view_layer.objects.active
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    ajuste = normalizar(malla, LARGO.get(especie) if origen else None, tope_caras) if origen else {}
+    ajuste = normalizar(malla, LARGO.get(re.sub(r"_2$", "", especie)), tope_caras) if origen else {}
     V = np.array([v.co[:] for v in malla.data.vertices])
     datos = analizar(V, cfg["tipo"], cfg["cabeza"])
     esq = armar(datos, cfg["tipo"])
@@ -533,9 +534,14 @@ def main():
             if not archivo.lower().endswith(".glb"):
                 continue
             especie = archivo[:-4].lower()
+            m = re.match(r"meshy_ai_([a-z]+)_", especie)      # Meshy_AI_herrerasaurus_..._image-to-3d-texture
+            if m:
+                especie = m.group(1)
+                if any(h["especie"] == especie for h in hechos):
+                    especie += "_2"                          # segunda versión: queda aparte para compararlas
             if a.solo and especie not in a.solo:
                 continue
-            cfg = ESPECIES.get(especie, dict(tipo="bipedo", ciclo=1.0, muslo=28, ondula=3, cabeza=0.1, quieto="olfatear"))
+            cfg = ESPECIES.get(re.sub(r"_2$", "", especie), dict(tipo="bipedo", ciclo=1.0, muslo=28, ondula=3, cabeza=0.1, quieto="olfatear"))
             if especie not in ESPECIES:
                 print(f"  {especie}: especie sin ficha, uso un bípedo genérico (revisar)", flush=True)
             hechos.append(hacer(especie, cfg, a.vista, os.path.join(a.carpeta, archivo), salida, a.tope_caras))
