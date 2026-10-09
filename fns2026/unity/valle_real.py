@@ -237,10 +237,16 @@ def paleta_real(sat):
 def pesos_desde_satelite(color, pendiente, paleta):
     """Peso de cada capa = parecido al color medido (en el satélite) + reglas de pendiente:
     las paredes empinadas son estratos expuestos, lo plano y claro es arcilla."""
+    # el color del satélite se suaviza (~3 píxeles de 10 m): un píxel mezcla roca roja y derrubio gris,
+    # y clasificado tal cual daba manchas de camuflaje en el paredón
+    from texturas_suelo import desenfocar
+    n0 = color.shape[0]
+    color = np.stack([desenfocar(np.pad(color[..., c], ((0, n0 % 2),) * 2, mode="edge"), 3.0)[:n0, :n0] for c in range(3)], -1)
     centros = np.stack([paleta[c] for c in CAPAS])            # (4, 3)
-    d2 = ((color[..., None, :] - centros[None, None]) ** 2).sum(-1) / 0.004
+    d2 = ((color[..., None, :] - centros[None, None]) ** 2).sum(-1) / 0.012
     w = np.exp(-d2)
-    w[..., CAPAS.index("estratos")] *= 1 + 2.5 * np.clip((pendiente - 0.5) / 0.6, 0, 1)
+    # las paredes empinadas son estratos expuestos (Los Colorados); lo plano y claro, arcilla
+    w[..., CAPAS.index("estratos")] *= 1 + 5.0 * np.clip((pendiente - 0.35) / 0.5, 0, 1)
     w[..., CAPAS.index("arcilla_gris")] *= 1 + 0.6 * np.clip(1 - pendiente / 0.3, 0, 1)
     return w / (w.sum(-1, keepdims=True) + 1e-9)
 

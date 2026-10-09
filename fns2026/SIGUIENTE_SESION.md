@@ -1,5 +1,25 @@
 # Para la próxima sesión
 
+## Estado real (09/10/2026)
+
+### Unity HDRP (nuevo, `fns2026/unity/`; ver `unity/LEEME.md`)
+
+- **Qué es:** la versión de máxima calidad en tiempo real, pedida por Facu ("si tenés que hacerlo en Unity para que sea realismo, hacelo"). Referencia: el video del space&time cube, con piso y paredes LED, dinosaurios a escala que pasan pegados y avance por el paisaje.
+- **Hecho y probado en la nube:**
+  - El proyecto Unity 6000.3 LTS (HDRP 17.3) está escrito: sala inmersiva fuera de eje (pared 5760×1080 o cubo piso + 3 paredes), sensores OSC, director de capítulos, ambiente HDRP, vegetación instanciada, fauna con Animator y encuentros, textos, perfiles de calidad, modo capturas y constructor en batchmode.
+  - Compila contra referencias de Unity y resúmenes de HDRP verificados en el código fuente (`unity/verificacion/`). Ninguna API obsoleta en 6.3.
+  - Pasan las 12 pruebas de lógica y la de proyección fuera de eje.
+  - **El Valle de la Luna real** (`valle_real.py`): DEM Copernicus de 30 m, color de Sentinel-2 del 26/09 y erosión de 4 millones de gotas. Vista de control en `unity/verificacion/vista_valle_hoy.jpg`.
+  - **Esqueleto y animaciones** de los 6 animales de la web (`pipeline/rig_fauna.py`): caminar, quieto y pastar u olfatear. Tiras de control en `unity/ParqueTriasico/Datos/fauna/*/`.
+- **NO probado:** que Unity abra, arme y compile en la PC, y la calidad en pantalla. Lo dice el informe que sube `CONSTRUIR_Y_PROBAR.bat` a `unity/pruebas_pc/`.
+- **Pendiente:**
+  1. Que Facu corra `fns2026\unity\CONSTRUIR_Y_PROBAR.bat`. Tiene que iniciar sesión una vez en Unity Hub por la licencia Personal.
+  2. Leer `unity/pruebas_pc/<fecha>/` (informe, errores y capturas) y corregir.
+  3. **Dinos de Meshy de la PC**: están en `Descargas\dinos_triasico` (7 GLB de 30 MB: Chromogisaurus, Eodromaeus, Panphagia, Pisanosaurus, Sanjuansaurus, Teropodo_grande, Dino_extra) más 2 Herrerasaurus. El trabajo 009 del puente los copia a `modelos_mac/pc/`. Después: `rig_fauna.py` sobre esos modelos → `Datos/fauna_pc/<especie>/`, que el constructor usa antes que los de la web.
+  4. En la PC hay un proyecto `Documents\ValleLunaUnity` (de hoy) con esos dinos en FBX. La lista de archivos llega con el 009: revisar si conviene sumar algo.
+- **Privacidad:** el repo es PÚBLICO. Las fotos personales de la PC NO van por el puente. Facu elige: pasar el repo a privado o subir las referencias a una carpeta de Drive "FNS2026 referencias".
+
+
 ## Estado real (28/09, madrugada)
 
 ### Probado y funcionando
