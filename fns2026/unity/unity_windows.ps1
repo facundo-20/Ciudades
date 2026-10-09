@@ -1,4 +1,4 @@
-# Parque Triásico en Unity · instala, arma, compila y prueba, de un doble clic (CONSTRUIR_Y_PROBAR.bat).
+﻿# Parque Triásico en Unity · instala, arma, compila y prueba, de un doble clic (CONSTRUIR_Y_PROBAR.bat).
 #
 #   1. Unity Hub y el editor 6000.3 LTS (si faltan; ~10 GB la primera vez)
 #   2. Licencia: la Personal es gratis, pero Unity pide iniciar sesión UNA vez en Unity Hub
@@ -18,6 +18,22 @@ $raizRepo = (Resolve-Path (Join-Path $aqui "..\..")).Path
 $RAMA = "claude/fiesta-sol-2026-immersive-ph9915"
 function Paso($t) { Write-Host "`n== $t" -ForegroundColor Yellow }
 function RefrescarPath { $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User") }
+
+# los dinosaurios de Meshy de esta PC (Descargas\dinos_triasico y los Herrerasaurus de Meshy): se suben
+# a la rama para armarles el esqueleto en la nube (pipeline/rig_fauna.py --carpeta modelos_mac/pc)
+$dinosPc = Join-Path $raizRepo "fns2026\modelos_mac\pc"
+$descargas = Join-Path $env:USERPROFILE "Downloads"
+$dinos = @()
+if (Test-Path (Join-Path $descargas "dinos_triasico")) { $dinos += @(Get-ChildItem (Join-Path $descargas "dinos_triasico") -Filter *.glb) }
+# @(): si no hay ninguno queda vacío (sin @ se colaba un $null y la copia fallaba)
+$dinos += @(Get-ChildItem $descargas -Filter "Meshy_AI_herrerasaurus_*_image-to-3d-texture.glb" -ErrorAction SilentlyContinue)
+$dinosNuevos = 0
+foreach ($d in $dinos) {
+    New-Item -ItemType Directory -Force -Path $dinosPc | Out-Null
+    $copia = Join-Path $dinosPc $d.Name
+    if (-not (Test-Path $copia) -or (Get-Item $copia).Length -ne $d.Length) { Copy-Item $d.FullName $copia -Force; $dinosNuevos++ }
+}
+if ($dinos.Count) { Write-Host "Dinosaurios de Meshy de esta PC: $($dinos.Count) ($dinosNuevos nuevos)" }
 
 Paso "1/5 Unity Hub y editor"
 $hub = "C:\Program Files\Unity Hub\Unity Hub.exe"
@@ -127,6 +143,7 @@ if (-not $SinSubir -and (Get-Command git -ErrorAction SilentlyContinue)) {
     Push-Location $raizRepo
     try {
         git add (Join-Path $aqui "pruebas_pc") | Out-Null
+        if (Test-Path $dinosPc) { git add $dinosPc | Out-Null }
         git commit -m "Unity: informe y capturas de la PC" | Out-Host
         git pull --no-rebase --no-edit origin $RAMA | Out-Host
         git push origin $RAMA | Out-Host

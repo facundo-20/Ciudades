@@ -12,6 +12,15 @@ HUB="/Applications/Unity Hub.app/Contents/MacOS/Unity Hub"
 paso() { printf "\n\033[33m== %s\033[0m\n" "$1"; }
 mkdir -p "$BUILDS"
 
+# dinosaurios de Meshy bajados en esta Mac (Descargas/dinos_triasico): suben a la rama para armarles
+# el esqueleto en la nube (pipeline/rig_fauna.py --carpeta modelos_mac/pc)
+DINOS_PC="$RAIZ/fns2026/modelos_mac/pc"
+for f in "$HOME/Downloads/dinos_triasico"/*.glb "$HOME/Downloads"/Meshy_AI_herrerasaurus_*_image-to-3d-texture.glb; do
+  [ -f "$f" ] || continue
+  mkdir -p "$DINOS_PC"
+  cmp -s "$f" "$DINOS_PC/$(basename "$f")" || cp "$f" "$DINOS_PC/"
+done
+
 paso "1/5 Unity Hub y editor"
 if [ ! -x "$HUB" ]; then
   echo "   bajando Unity Hub…"
@@ -76,6 +85,6 @@ cp "$BUILDS/informe_constructor.txt" "$CAPT/informe.json" "$DEST/" 2>/dev/null
 grep -E "error CS|Exception|ERROR|\[FNS" "$LOG" > "$DEST/errores_unity.txt" 2>/dev/null
 tail -300 "$LOG" > "$DEST/log_final.txt" 2>/dev/null
 for f in "$CAPT"/*.png; do [ -f "$f" ] && sips -s format jpeg -Z 1920 "$f" --out "$DEST/$(basename "${f%.png}").jpg" >/dev/null; done
-cd "$RAIZ" && git add "$AQUI/pruebas_mac" && git commit -m "Unity: informe y capturas de la Mac" && \
+cd "$RAIZ" && git add "$AQUI/pruebas_mac" && { [ -d "$DINOS_PC" ] && git add "$DINOS_PC"; true; } && git commit -m "Unity: informe y capturas de la Mac" && \
   git pull --no-rebase --no-edit origin "$RAMA" && git push origin "$RAMA"
 echo "Listo. App y lanzador en $BUILDS"
