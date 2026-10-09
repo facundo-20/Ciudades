@@ -337,24 +337,31 @@ namespace FNS.Editor
         // ------------------------------------------------------------------------------------------
 
         [Serializable]
-        class InformeRig { public string especie; public float velocidad_caminar_m_s; public string[] animaciones; }
+        class InformeRig { public string especie; public float velocidad_caminar_m_s; public string[] animaciones; public string texturas; }
 
         static List<ModeloAnimal> PrepararFauna(Mundo mundo)
         {
             var lista = new List<ModeloAnimal>();
-            string carpeta = Path.Combine(Datos, "fauna");
-            if (!Directory.Exists(carpeta)) { Anotar("fauna: falta Datos/fauna (correr pipeline/rig_fauna.py)"); return lista; }
-            foreach (var dir in Directory.GetDirectories(carpeta))
+            // Datos/fauna: los de la web · Datos/fauna_pc: los de Meshy de la PC (más detalle), que ganan
+            // y pueden traer especies nuevas
+            var especies = new[] { "fauna", "fauna_pc" }.Select(c => Path.Combine(Datos, c)).Where(Directory.Exists)
+                                .SelectMany(Directory.GetDirectories).Select(Path.GetFileName).Distinct().OrderBy(x => x).ToList();
+            if (especies.Count == 0) { Anotar("fauna: falta Datos/fauna (correr pipeline/rig_fauna.py)"); return lista; }
+            foreach (var esp in especies)
             {
-                string esp = Path.GetFileName(dir);
-                // los modelos de Meshy de la PC (más detalle) van en Datos/fauna_pc/<especie>/ y ganan
+                string dir = Path.Combine(Datos, "fauna", esp);
                 string fuente = Directory.Exists(Path.Combine(Datos, "fauna_pc", esp)) ? Path.Combine(Datos, "fauna_pc", esp) : dir;
+                if (!File.Exists(Path.Combine(fuente, esp + ".json"))) { Anotar($"fauna {esp}: falta {esp}.json"); continue; }
+                var rig = JsonUtility.FromJson<InformeRig>(File.ReadAllText(Path.Combine(fuente, esp + ".json")));
                 string fbx = Copiar(Path.Combine(fuente, esp + ".fbx"), $"{Raiz}/Modelos/fauna/{esp}/{esp}.fbx");
-                string glbTex = Copiar(Path.Combine(fuente, esp + "_texturas.glb"), $"{Raiz}/Modelos/fauna/{esp}/{esp}_texturas.glb")
-                             ?? Copiar(Path.Combine(Fns, "experiencia", "public", "modelos", esp + ".glb"), $"{Raiz}/Modelos/fauna/{esp}/{esp}_texturas.glb");
+                // texturas: el GLB original de Meshy que indica el informe del rig (relativo a fns2026/),
+                // o el de la web si no hay
+                string glbTex = null;
+                if (!string.IsNullOrEmpty(rig.texturas))
+                    glbTex = Copiar(Path.Combine(Fns, rig.texturas.Replace('/', Path.DirectorySeparatorChar)), $"{Raiz}/Modelos/fauna/{esp}/{esp}_texturas.glb");
+                glbTex ??= Copiar(Path.Combine(Fns, "experiencia", "public", "modelos", esp + ".glb"), $"{Raiz}/Modelos/fauna/{esp}/{esp}_texturas.glb");
                 AssetDatabase.Refresh();
                 if (fbx == null) { Anotar($"fauna {esp}: falta el FBX"); continue; }
-                var rig = JsonUtility.FromJson<InformeRig>(File.ReadAllText(Path.Combine(fuente, esp + ".json")));
 
                 var imp = (ModelImporter)AssetImporter.GetAtPath(fbx);
                 imp.animationType = ModelImporterAnimationType.Generic;

@@ -49,7 +49,15 @@ ESPECIES = {
     "herrerasaurus": dict(tipo="bipedo", ciclo=1.2, muslo=30, ondula=3, cabeza=0.12, quieto="olfatear"),
     "eoraptor": dict(tipo="bipedo", ciclo=0.7, muslo=32, ondula=3, cabeza=0.1, quieto="olfatear"),
     "eodromaeus": dict(tipo="bipedo", ciclo=0.7, muslo=32, ondula=3, cabeza=0.1, quieto="olfatear"),
+    # sauropodomorfo basal de Ischigualasto, ~2 m; herbívoro u omnívoro
+    "chromogisaurus": dict(tipo="bipedo", ciclo=0.9, muslo=30, ondula=3, cabeza=0.08, quieto="pastar"),
+    # pequeño ornitisquio (o silesáurido, según el autor), ~1 m, herbívoro
+    "pisanosaurus": dict(tipo="bipedo", ciclo=0.6, muslo=32, ondula=3, cabeza=0.1, quieto="pastar"),
 }
+# largo real (m) para llevar a escala los modelos que vienen de Meshy sin tamaño (a validar con la UNSJ)
+LARGO = {"herrerasaurus": 4.0, "eoraptor": 1.0, "eodromaeus": 1.2, "panphagia": 1.3, "sanjuansaurus": 3.0,
+         "chromogisaurus": 2.0, "pisanosaurus": 1.0, "hyperodapedon": 1.3, "ischigualastia": 3.5,
+         "saurosuchus": 6.0, "exaeretodon": 1.8}
 
 
 # ------------------------------------------------------------------------------------------
@@ -424,22 +432,66 @@ def vista(esq, malla, ruta, cfg):
     esq.animation_data.action = None
 
 
-def hacer(especie, cfg, con_vista):
+def normalizar(malla, largo, tope_caras):
+    """Para los GLB que vienen directo de Meshy: eje largo en Y, cabeza hacia -Y (como los que pasan
+    por blender_refinar.py), patas en el piso, centrado y a escala real. Si es muy pesado para
+    tiempo real, se simplifica (las UV se conservan: sirven las texturas del GLB original).
+    Se transforma la malla directamente (el importador de glTF deja los objetos en cuaterniones)."""
+    from mathutils import Matrix
+
+    def verts():
+        return np.array([v.co[:] for v in malla.data.vertices])
+
+    V = verts()
+    ext = V.max(0) - V.min(0)
+    giro = 0
+    if ext[0] > ext[1] * 1.15:                  # el largo está en X: se gira 90° sobre Z
+        giro = 90
+        malla.data.transform(Matrix.Rotation(math.pi / 2, 4, "Z"))
+        V = verts()
+    # ¿hacia dónde mira? Las patas quedan del lado de la cabeza: la cola es larga y no toca el piso
+    H = V[:, 2].max() - V[:, 2].min()
+    pies = V[V[:, 2] < V[:, 2].min() + 0.06 * H]
+    centro_y = (V[:, 1].max() + V[:, 1].min()) / 2
+    if len(pies) and pies[:, 1].mean() > centro_y:
+        giro += 180
+        malla.data.transform(Matrix.Rotation(math.pi, 4, "Z"))
+        V = verts()
+    k = largo / max(1e-6, V[:, 1].max() - V[:, 1].min()) if largo else 1.0
+    malla.data.transform(Matrix.Diagonal((k, k, k, 1.0)))
+    V = verts()
+    malla.data.transform(Matrix.Translation((-(V[:, 0].max() + V[:, 0].min()) / 2,
+                                             -(V[:, 1].max() + V[:, 1].min()) / 2, -V[:, 2].min())))
+    malla.data.update()
+    caras = len(malla.data.polygons)
+    if tope_caras and caras > tope_caras:
+        m = malla.modifiers.new("simplificar", "DECIMATE")
+        m.ratio = tope_caras / caras
+        bpy.ops.object.modifier_apply(modifier=m.name)
+    return {"giro_z": giro, "escala": round(k, 4), "caras_antes": caras, "caras": len(malla.data.polygons)}
+
+
+def hacer(especie, cfg, con_vista, origen=None, salida=None, tope_caras=0):
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    bpy.ops.import_scene.gltf(filepath=os.path.join(ORIGEN, f"{especie}.glb"))
+    bpy.ops.import_scene.gltf(filepath=origen or os.path.join(ORIGEN, f"{especie}.glb"))
     mallas = [o for o in bpy.data.objects if o.type == "MESH"]
-    malla = mallas[0]
     for o in [o for o in bpy.data.objects if o.type != "MESH"]:
         bpy.data.objects.remove(o)
-    bpy.context.view_layer.objects.active = malla
-    malla.select_set(True)
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in mallas:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = mallas[0]
+    if len(mallas) > 1:
+        bpy.ops.object.join()                  # Meshy a veces separa el cuerpo en varias piezas
+    malla = bpy.context.view_layer.objects.active
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    ajuste = normalizar(malla, LARGO.get(especie) if origen else None, tope_caras) if origen else {}
     V = np.array([v.co[:] for v in malla.data.vertices])
     datos = analizar(V, cfg["tipo"], cfg["cabeza"])
     esq = armar(datos, cfg["tipo"])
     en_patas = pesar(malla, esq, datos)
     velocidad = animar(esq, datos, cfg)
-    carpeta = os.path.join(SALIDA, especie)
+    carpeta = os.path.join(salida or SALIDA, especie)
     os.makedirs(carpeta, exist_ok=True)
     # el material del FBX es sólo un nombre: Unity arma el HDRP/Lit con las texturas del GLB
     for m in malla.data.materials:
@@ -455,7 +507,9 @@ def hacer(especie, cfg, con_vista):
                "vertices_en_patas": en_patas, "patas": [p["nombre"] for p in datos["patas"]],
                "velocidad_caminar_m_s": round(velocidad, 3), "ciclo_s": cfg["ciclo"],
                "animaciones": ["caminar", "quieto", "pastar" if cfg["quieto"] == "pastar" else "olfatear"],
-               "largo_m": round(datos["L"], 3), "alto_m": round(datos["H"], 3)}
+               "largo_m": round(datos["L"], 3), "alto_m": round(datos["H"], 3), "ajuste": ajuste,
+               # de dónde saca Unity las texturas (relativo a fns2026/): el GLB original de Meshy
+               "texturas": os.path.relpath(origen, FNS).replace(os.sep, "/") if origen else None}
     with open(os.path.join(carpeta, f"{especie}.json"), "w", encoding="utf-8") as f:
         json.dump(informe, f, ensure_ascii=False, indent=1)
     if con_vista:
@@ -469,8 +523,24 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--solo", nargs="*")
     ap.add_argument("--vista", action="store_true")
+    ap.add_argument("--carpeta", help="GLB de Meshy sin procesar (p. ej. modelos_mac/pc): salen a Datos/fauna_pc/")
+    ap.add_argument("--tope-caras", type=int, default=90000)
     a = ap.parse_args(argv)
     hechos = []
+    if a.carpeta:
+        salida = os.path.join(FNS, "unity", "ParqueTriasico", "Datos", "fauna_pc")
+        for archivo in sorted(os.listdir(a.carpeta)):
+            if not archivo.lower().endswith(".glb"):
+                continue
+            especie = archivo[:-4].lower()
+            if a.solo and especie not in a.solo:
+                continue
+            cfg = ESPECIES.get(especie, dict(tipo="bipedo", ciclo=1.0, muslo=28, ondula=3, cabeza=0.1, quieto="olfatear"))
+            if especie not in ESPECIES:
+                print(f"  {especie}: especie sin ficha, uso un bípedo genérico (revisar)", flush=True)
+            hechos.append(hacer(especie, cfg, a.vista, os.path.join(a.carpeta, archivo), salida, a.tope_caras))
+        print(f"listo: {len(hechos)} animales de la PC → {salida}")
+        return
     for archivo in sorted(os.listdir(ORIGEN)):
         especie = archivo[:-4]
         if not archivo.endswith(".glb") or especie not in ESPECIES or (a.solo and especie not in a.solo):

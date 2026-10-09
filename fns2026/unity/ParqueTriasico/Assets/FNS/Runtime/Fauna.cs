@@ -32,9 +32,10 @@ namespace FNS
         // ni de dinosaurios de otras épocas, aunque estén en la referencia)
         static readonly Dictionary<string, (string especie, int cuantos)[]> Elenco = new Dictionary<string, (string, int)[]>
         {
-            { "rio", new[] { ("hyperodapedon", 3), ("exaeretodon", 1) } },
-            { "bosque", new[] { ("panphagia", 2), ("herrerasaurus", 1) } },
-            { "llanura", new[] { ("ischigualastia", 3), ("saurosuchus", 1) } },
+            // si una especie no tiene modelo (p. ej. faltan los de Meshy de la PC), se saltea sola
+            { "rio", new[] { ("hyperodapedon", 3), ("pisanosaurus", 2), ("exaeretodon", 1) } },
+            { "bosque", new[] { ("chromogisaurus", 2), ("panphagia", 2), ("eodromaeus", 1), ("herrerasaurus", 1) } },
+            { "llanura", new[] { ("ischigualastia", 3), ("sanjuansaurus", 1), ("saurosuchus", 1) } },
             { "ceniza", new[] { ("ischigualastia", 2) } },
         };
 
