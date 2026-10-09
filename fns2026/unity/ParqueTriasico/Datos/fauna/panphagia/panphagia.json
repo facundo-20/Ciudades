@@ -1,0 +1,20 @@
+{
+ "especie": "panphagia",
+ "tipo": "bipedo",
+ "huesos": 22,
+ "vertices": 18387,
+ "vertices_en_patas": 4536,
+ "patas": [
+  "tra_izq",
+  "tra_der"
+ ],
+ "velocidad_caminar_m_s": 0.599,
+ "ciclo_s": 0.8,
+ "animaciones": [
+  "caminar",
+  "quieto",
+  "pastar"
+ ],
+ "largo_m": 1.3,
+ "alto_m": 0.631
+}

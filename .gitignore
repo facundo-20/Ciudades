@@ -24,3 +24,26 @@ fns2026/ae_puente/proyectos/
 AE_salida/
 fns2026/ae_puente/hechos/**/*.aep
 !fns2026/modelos/gastos_meshy.csv
+
+# Unity (fns2026/unity): lo que genera Unity o el constructor en cada PC no va a git
+fns2026/unity/cache_geo/
+fns2026/unity/Builds/
+fns2026/unity/ParqueTriasico/Library/
+fns2026/unity/ParqueTriasico/Temp/
+fns2026/unity/ParqueTriasico/Logs/
+fns2026/unity/ParqueTriasico/obj/
+fns2026/unity/ParqueTriasico/UserSettings/
+fns2026/unity/ParqueTriasico/.vs/
+fns2026/unity/ParqueTriasico/*.csproj
+fns2026/unity/ParqueTriasico/*.sln
+fns2026/unity/ParqueTriasico/Assets/FNS/Modelos/
+fns2026/unity/ParqueTriasico/Assets/FNS/Suelo/
+fns2026/unity/ParqueTriasico/Assets/FNS/Terrenos/
+fns2026/unity/ParqueTriasico/Assets/FNS/Mallas/
+fns2026/unity/ParqueTriasico/Assets/FNS/Prefabs/
+fns2026/unity/ParqueTriasico/Assets/FNS/Animacion/
+fns2026/unity/ParqueTriasico/Assets/FNS/Materiales/
+fns2026/unity/ParqueTriasico/Assets/FNS/Texturas/
+fns2026/unity/ParqueTriasico/Assets/FNS/Render/
+fns2026/unity/ParqueTriasico/Assets/FNS/Escenas/
+fns2026/unity/ParqueTriasico/Assets/FNS/Datos/

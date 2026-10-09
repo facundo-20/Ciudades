@@ -1,0 +1,54 @@
+{
+ "capas": [
+  {
+   "nombre": "barro",
+   "mundo_m": 2.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "barro_humedo",
+   "mundo_m": 3.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "arena",
+   "mundo_m": 2.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "hojarasca",
+   "mundo_m": 1.5,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "loma",
+   "mundo_m": 4.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "basalto",
+   "mundo_m": 6.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "arcilla_gris",
+   "mundo_m": 3.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "arcilla_clara",
+   "mundo_m": 3.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "estratos",
+   "mundo_m": 5.0,
+   "fuente": "procedural (texturas_suelo.py)"
+  },
+  {
+   "nombre": "ripio",
+   "mundo_m": 1.5,
+   "fuente": "procedural (texturas_suelo.py)"
+  }
+ ]
+}

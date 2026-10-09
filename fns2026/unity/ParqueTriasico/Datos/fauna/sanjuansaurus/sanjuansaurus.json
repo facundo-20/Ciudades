@@ -1,0 +1,20 @@
+{
+ "especie": "sanjuansaurus",
+ "tipo": "bipedo",
+ "huesos": 22,
+ "vertices": 18606,
+ "vertices_en_patas": 5049,
+ "patas": [
+  "tra_izq",
+  "tra_der"
+ ],
+ "velocidad_caminar_m_s": 0.981,
+ "ciclo_s": 1.1,
+ "animaciones": [
+  "caminar",
+  "quieto",
+  "olfatear"
+ ],
+ "largo_m": 3.001,
+ "alto_m": 1.41
+}

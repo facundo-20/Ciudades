@@ -1,0 +1,13 @@
+{
+  "_nota": "Pared LED 16:3 (5760 x 1080) vista como una ventana desde el punto dulce, a 5,5 m. Medidas en metros, con el origen en los pies del visitante; x a la derecha, y arriba, z hacia la pantalla. Ajustar ancho/alto reales de la pared y la distancia del público.",
+  "modo": "pared",
+  "lienzo_ancho": 5760,
+  "lienzo_alto": 1080,
+  "ojo": [0.0, 1.6, 0.0],
+  "ojo_rango_x": 2.0,
+  "escala_mundo": 1.0,
+  "superficies": [
+    { "nombre": "pared", "abajo_izq": [-4.8, 0.7, 5.5], "abajo_der": [4.8, 0.7, 5.5], "arriba_izq": [-4.8, 2.5, 5.5],
+      "ancho_px": 5760, "alto_px": 1080, "lienzo_x": 0, "lienzo_y": 0, "giro": 0 }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+ "especie": "exaeretodon",
+ "tipo": "cuadrupedo",
+ "huesos": 28,
+ "vertices": 17460,
+ "vertices_en_patas": 7384,
+ "patas": [
+  "del_izq",
+  "del_der",
+  "tra_izq",
+  "tra_der"
+ ],
+ "velocidad_caminar_m_s": 0.572,
+ "ciclo_s": 0.9,
+ "animaciones": [
+  "caminar",
+  "quieto",
+  "pastar"
+ ],
+ "largo_m": 1.8,
+ "alto_m": 0.673
+}

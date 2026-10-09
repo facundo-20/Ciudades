@@ -1,0 +1,31 @@
+<!-- SÓLO PARA LA NUBE: compila el C# del Parque Triásico contra referencias de Unity y los stubs de
+     HDRP (Stubs_HDRP.cs), para encontrar errores antes de que lleguen a la PC.
+     dotnet build -p:Plataforma=Windows   |   dotnet build -p:Plataforma=Mac
+     UNITY_REF: carpeta con las DLL de referencia de UnityEngine/UnityEditor (ver LEEME.md). -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>CS0649;CS0169;CS0414;CS0618</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Plataforma Condition="'$(Plataforma)'==''">Windows</Plataforma>
+    <DefineConstants>UNITY_EDITOR;ENABLE_LEGACY_INPUT_MANAGER;UNITY_6000_0_OR_NEWER</DefineConstants>
+    <DefineConstants Condition="'$(Plataforma)'=='Windows'">$(DefineConstants);UNITY_STANDALONE_WIN;FNS_SPOUT</DefineConstants>
+    <DefineConstants Condition="'$(Plataforma)'=='Mac'">$(DefineConstants);UNITY_STANDALONE_OSX;FNS_SYPHON</DefineConstants>
+    <UNITY_REF Condition="'$(UNITY_REF)'==''">/tmp/claude-0/unityref</UNITY_REF>
+    <OutputPath>/tmp/claude-0/compilar/$(Plataforma)/</OutputPath>
+    <BaseIntermediateOutputPath>/tmp/claude-0/compilar/obj/</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../ParqueTriasico/Assets/FNS/**/*.cs" />
+    <Compile Include="Stubs_HDRP.cs" />
+    <Compile Include="Stubs_Unity6.cs" Condition="Exists('Stubs_Unity6.cs')" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="$(UNITY_REF)/parcheado/*.dll" />
+    <Reference Include="$(UNITY_REF)/unity3d.sdk/lib/UnityEditor.dll" />
+  </ItemGroup>
+</Project>

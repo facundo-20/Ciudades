@@ -1,0 +1,681 @@
+{
+ "_nota": "Generado por fns2026/unity/exportar_mundo.py desde triasico_cycles.py. No editar a mano.",
+ "nivel_agua": -1.1,
+ "mundo": {
+  "x0": -130,
+  "x1": 170,
+  "z0": -120,
+  "z1": 120
+ },
+ "rio": {
+  "x_max": 40.0,
+  "nota": "cauce: z_web = 10 sen(0,035 x) + 4 sen(0,09 x + 1,3); en Unity z = -z_web"
+ },
+ "volcan": [
+  1100.0,
+  245.0,
+  700.0
+ ],
+ "terrenos": [
+  {
+   "nombre": "triasico_cerca",
+   "era": "triasico",
+   "cual": "cerca",
+   "x0": -226.0,
+   "z0": -256.0,
+   "lado": 512.0,
+   "res": 2049,
+   "hmin": -6.9308,
+   "hmax": 23.3139,
+   "alturas": "triasico_cerca.r16d.gz",
+   "capas": [
+    "barro",
+    "barro_humedo",
+    "arena",
+    "hojarasca",
+    "loma",
+    "basalto"
+   ],
+   "capas_png": [
+    "triasico_cerca_capas0.png",
+    "triasico_cerca_capas1.png"
+   ],
+   "capas_res": 1025
+  },
+  {
+   "nombre": "triasico_lejos",
+   "era": "triasico",
+   "cual": "lejos",
+   "x0": -3826.0,
+   "z0": -3840.0,
+   "lado": 8192.0,
+   "res": 1025,
+   "hmin": -6.8,
+   "hmax": 260.1333,
+   "alturas": "triasico_lejos.r16d.gz",
+   "capas": [
+    "barro",
+    "barro_humedo",
+    "arena",
+    "hojarasca",
+    "loma",
+    "basalto"
+   ],
+   "capas_png": [
+    "triasico_lejos_capas0.png",
+    "triasico_lejos_capas1.png"
+   ],
+   "capas_res": 513
+  },
+  {
+   "nombre": "hoy_lejos",
+   "era": "hoy",
+   "cual": "lejos",
+   "x0": -4096.0,
+   "z0": -4096.0,
+   "lado": 8192.0,
+   "res": 2049,
+   "hmin": -32.6278,
+   "hmax": 494.8727,
+   "alturas": "valle/hoy_lejos.r16d.gz",
+   "capas": [
+    "arcilla_gris",
+    "arcilla_clara",
+    "estratos",
+    "ripio"
+   ],
+   "capas_png": [
+    "valle/hoy_lejos_capas0.png"
+   ],
+   "capas_res": 512
+  },
+  {
+   "nombre": "hoy_cerca",
+   "era": "hoy",
+   "cual": "cerca",
+   "x0": -1080.0,
+   "z0": -1080.0,
+   "lado": 2048.0,
+   "res": 2049,
+   "hmin": -0.4899,
+   "hmax": 347.2114,
+   "alturas": "valle/hoy_cerca.r16d.gz",
+   "capas": [
+    "arcilla_gris",
+    "arcilla_clara",
+    "estratos",
+    "ripio"
+   ],
+   "capas_png": [
+    "valle/hoy_cerca_capas0.png"
+   ],
+   "capas_res": 1024
+  }
+ ],
+ "capitulos": [
+  {
+   "clave": "titulo",
+   "titulo": "ISCHIGUALASTO",
+   "subtitulo": "San Juan, hace 231 millones de años · El amanecer de los dinosaurios",
+   "duracion": 14,
+   "fichas": [],
+   "desde": [
+    -120,
+    26,
+    -60
+   ],
+   "hasta": [
+    -95,
+    14,
+    -40
+   ],
+   "mira": [
+    -20,
+    16,
+    30
+   ],
+   "sol_elevacion": 9,
+   "sol_azimut": 250,
+   "hacia_sol": [
+    -0.33781,
+    0.15643,
+    -0.92812
+   ],
+   "bruma_recorrido_m": 400.0,
+   "ceniza": 0,
+   "volcan": 0.2,
+   "era": "triasico",
+   "exposicion": 0.5,
+   "foco_m": 60,
+   "diafragma": 4.0
+  },
+  {
+   "clave": "rio",
+   "titulo": "El río",
+   "subtitulo": "Una llanura con ríos que serpentean, lluvias de temporada y mucha vida",
+   "duracion": 45,
+   "fichas": [
+    "hyperodapedon",
+    "neocalamites"
+   ],
+   "desde": [
+    -95,
+    3.2,
+    -26
+   ],
+   "hasta": [
+    -30,
+    2.6,
+    -20
+   ],
+   "mira": [
+    0,
+    0,
+    10
+   ],
+   "sol_elevacion": 22,
+   "sol_azimut": 230,
+   "hacia_sol": [
+    -0.59598,
+    0.37461,
+    -0.71026
+   ],
+   "bruma_recorrido_m": 555.6,
+   "ceniza": 0,
+   "volcan": 0.3,
+   "era": "triasico",
+   "exposicion": 0.0,
+   "foco_m": 12.0,
+   "diafragma": 4.0
+  },
+  {
+   "clave": "bosque",
+   "titulo": "El bosque de Dicroidium",
+   "subtitulo": "Frondas que se bifurcan, coníferas y helechos. Todavía no existía el pasto",
+   "duracion": 45,
+   "fichas": [
+    "eoraptor",
+    "herrerasaurus",
+    "panphagia",
+    "dicroidium"
+   ],
+   "desde": [
+    8,
+    2.2,
+    -12
+   ],
+   "hasta": [
+    62,
+    2.2,
+    4
+   ],
+   "mira": [
+    120,
+    1,
+    20
+   ],
+   "sol_elevacion": 40,
+   "sol_azimut": 200,
+   "hacia_sol": [
+    -0.71985,
+    0.64279,
+    -0.262
+   ],
+   "bruma_recorrido_m": 285.7,
+   "ceniza": 0,
+   "volcan": 0.4,
+   "era": "triasico",
+   "exposicion": 0.0,
+   "foco_m": 12.0,
+   "diafragma": 4.0
+  },
+  {
+   "clave": "llanura",
+   "titulo": "La llanura y el volcán",
+   "subtitulo": "Al oeste, volcanes activos en el borde del continente, donde mucho después se levantarían los Andes",
+   "duracion": 40,
+   "fichas": [
+    "ischigualastia",
+    "herrerasaurus"
+   ],
+   "desde": [
+    92,
+    0.5,
+    -19
+   ],
+   "hasta": [
+    114,
+    0.5,
+    -9
+   ],
+   "mira": [
+    1100,
+    60,
+    700
+   ],
+   "sol_elevacion": 30,
+   "sol_azimut": 160,
+   "hacia_sol": [
+    -0.8138,
+    0.5,
+    0.2962
+   ],
+   "bruma_recorrido_m": 833.3,
+   "ceniza": 0,
+   "volcan": 1,
+   "era": "triasico",
+   "exposicion": 0.0,
+   "foco_m": 22,
+   "diafragma": 4.0
+  },
+  {
+   "clave": "ceniza",
+   "titulo": "La lluvia de ceniza",
+   "subtitulo": "El barro de las crecidas y la ceniza fueron tapando los restos. La ceniza permite fecharlos: 231 millones de años",
+   "duracion": 30,
+   "fichas": [
+    "ceniza"
+   ],
+   "desde": [
+    128,
+    3.4,
+    -4
+   ],
+   "hasta": [
+    118,
+    5,
+    -16
+   ],
+   "mira": [
+    104,
+    0,
+    4
+   ],
+   "sol_elevacion": 14,
+   "sol_azimut": 170,
+   "hacia_sol": [
+    -0.95555,
+    0.24192,
+    0.16849
+   ],
+   "bruma_recorrido_m": 83.3,
+   "ceniza": 1,
+   "volcan": 1,
+   "era": "triasico",
+   "exposicion": -0.2,
+   "foco_m": 12.0,
+   "diafragma": 4.0
+  },
+  {
+   "clave": "hoy",
+   "titulo": "Hoy: el Valle de la Luna",
+   "subtitulo": "Parque Provincial Ischigualasto · Patrimonio de la Humanidad (UNESCO, 2000) · Conocelos en el MuPa",
+   "duracion": 40,
+   "fichas": [
+    "hoy"
+   ],
+   "desde": [
+    -460.0,
+    22.13,
+    -440.0
+   ],
+   "hasta": [
+    -300.0,
+    45.5,
+    -280.0
+   ],
+   "mira": [
+    300.0,
+    112.13,
+    380.0
+   ],
+   "sol_elevacion": 25.0,
+   "sol_azimut": 255.0,
+   "hacia_sol": [
+    -0.87543,
+    0.42262,
+    -0.23457
+   ],
+   "bruma_recorrido_m": 6000.0,
+   "ceniza": 0,
+   "volcan": 0,
+   "era": "hoy",
+   "exposicion": -0.6,
+   "foco_m": 40,
+   "diafragma": 8
+  }
+ ],
+ "fauna": [
+  {
+   "especie": "hyperodapedon",
+   "pos": [
+    -60,
+    0.308,
+    -4.14
+   ],
+   "giro": 162.8
+  },
+  {
+   "especie": "hyperodapedon",
+   "pos": [
+    -57,
+    0.223,
+    -2.93
+   ],
+   "giro": 111.2
+  },
+  {
+   "especie": "hyperodapedon",
+   "pos": [
+    -63,
+    0.429,
+    -5.21
+   ],
+   "giro": 42.5
+  },
+  {
+   "especie": "hyperodapedon",
+   "pos": [
+    -20,
+    -0.018,
+    -1.14
+   ],
+   "giro": 134.2
+  },
+  {
+   "especie": "hyperodapedon",
+   "pos": [
+    -24,
+    -0.12,
+    0.98
+   ],
+   "giro": 71.1
+  },
+  {
+   "especie": "herrerasaurus",
+   "pos": [
+    35,
+    -0.714,
+    8
+   ],
+   "giro": 19.6
+  },
+  {
+   "especie": "herrerasaurus",
+   "pos": [
+    110,
+    -0.842,
+    -10
+   ],
+   "giro": -26.3
+  },
+  {
+   "especie": "eoraptor",
+   "pos": [
+    28,
+    -1.077,
+    -6
+   ],
+   "giro": 157.1
+  },
+  {
+   "especie": "eoraptor",
+   "pos": [
+    31,
+    -0.622,
+    -3
+   ],
+   "giro": 128.4
+  },
+  {
+   "especie": "eoraptor",
+   "pos": [
+    26,
+    -0.845,
+    -9
+   ],
+   "giro": -158.0
+  },
+  {
+   "especie": "panphagia",
+   "pos": [
+    45,
+    -0.569,
+    -15
+   ],
+   "giro": 117.0
+  },
+  {
+   "especie": "ischigualastia",
+   "pos": [
+    119,
+    -0.849,
+    -4
+   ],
+   "giro": 42.5
+  },
+  {
+   "especie": "ischigualastia",
+   "pos": [
+    123,
+    -0.71,
+    1
+   ],
+   "giro": 59.7
+  },
+  {
+   "especie": "ischigualastia",
+   "pos": [
+    126.5,
+    -0.573,
+    -2.5
+   ],
+   "giro": 31.0
+  },
+  {
+   "especie": "eodromaeus",
+   "pos": [
+    50,
+    -0.812,
+    10
+   ],
+   "giro": -49.2
+  },
+  {
+   "especie": "sanjuansaurus",
+   "pos": [
+    135,
+    -0.53,
+    8
+   ],
+   "giro": -129.4
+  },
+  {
+   "especie": "exaeretodon",
+   "pos": [
+    -40,
+    -0.082,
+    3.34
+   ],
+   "giro": 122.7
+  },
+  {
+   "especie": "exaeretodon",
+   "pos": [
+    -44,
+    0.016,
+    2.35
+   ],
+   "giro": 53.9
+  },
+  {
+   "especie": "exaeretodon",
+   "pos": [
+    -37,
+    -0.118,
+    3.71
+   ],
+   "giro": 157.1
+  },
+  {
+   "especie": "exaeretodon",
+   "pos": [
+    20,
+    -0.518,
+    -12
+   ],
+   "giro": 88.3
+  },
+  {
+   "especie": "exaeretodon",
+   "pos": [
+    23,
+    -0.686,
+    -10
+   ],
+   "giro": 65.4
+  },
+  {
+   "especie": "saurosuchus",
+   "pos": [
+    90,
+    -0.738,
+    25
+   ],
+   "giro": 128.4
+  }
+ ],
+ "especies": [
+  {
+   "clave": "herrerasaurus",
+   "largo": 4.0,
+   "velocidad": 2.2,
+   "zonas": [
+    "bosque",
+    "llanura"
+   ]
+  },
+  {
+   "clave": "eoraptor",
+   "largo": 1.0,
+   "velocidad": 2.8,
+   "zonas": [
+    "bosque"
+   ]
+  },
+  {
+   "clave": "eodromaeus",
+   "largo": 1.2,
+   "velocidad": 3.0,
+   "zonas": [
+    "bosque"
+   ]
+  },
+  {
+   "clave": "panphagia",
+   "largo": 1.3,
+   "velocidad": 1.8,
+   "zonas": [
+    "bosque"
+   ]
+  },
+  {
+   "clave": "hyperodapedon",
+   "largo": 1.3,
+   "velocidad": 0.9,
+   "zonas": [
+    "rio"
+   ]
+  },
+  {
+   "clave": "ischigualastia",
+   "largo": 3.5,
+   "velocidad": 0.8,
+   "zonas": [
+    "llanura"
+   ]
+  },
+  {
+   "clave": "sanjuansaurus",
+   "largo": 3.0,
+   "velocidad": 2.4,
+   "zonas": [
+    "llanura"
+   ]
+  },
+  {
+   "clave": "saurosuchus",
+   "largo": 6.0,
+   "velocidad": 1.6,
+   "zonas": [
+    "llanura",
+    "rio"
+   ]
+  },
+  {
+   "clave": "exaeretodon",
+   "largo": 1.8,
+   "velocidad": 1.1,
+   "zonas": [
+    "rio",
+    "bosque"
+   ]
+  }
+ ],
+ "fichas": [
+  {
+   "clave": "herrerasaurus",
+   "titulo": "Herrerasaurus ischigualastensis",
+   "dato": "Uno de los dinosaurios más antiguos del mundo",
+   "texto": "Carnívoro bípedo de unos 4 metros, con manos de tres dedos que agarraban. Lleva el nombre de Victorino Herrera, el baqueano que encontró el primer ejemplar en 1959."
+  },
+  {
+   "clave": "eoraptor",
+   "titulo": "Eoraptor lunensis",
+   "dato": "\"El ladrón del amanecer\" del Valle de la Luna",
+   "texto": "Del tamaño de un perro mediano (alrededor de 1 metro), liviano y rápido. Es de los dinosaurios más primitivos que se conocen: casi el retrato del primer dinosaurio."
+  },
+  {
+   "clave": "panphagia",
+   "titulo": "Panphagia protos",
+   "dato": "\"El que come de todo\"",
+   "texto": "Un pariente muy temprano de los grandes saurópodos de cuello largo que aparecerían millones de años después. Medía poco más de un metro."
+  },
+  {
+   "clave": "hyperodapedon",
+   "titulo": "Hyperodapedon",
+   "dato": "El animal más común de Ischigualasto",
+   "texto": "No es un dinosaurio: es un rincosaurio, un reptil herbívoro con pico que cortaba plantas duras. Sus fósiles son los más abundantes de la formación."
+  },
+  {
+   "clave": "ischigualastia",
+   "titulo": "Ischigualastia jenseni",
+   "dato": "El herbívoro grande del valle",
+   "texto": "Un dicinodonte de unos 3 metros, pariente lejano de los mamíferos, con un pico córneo para arrancar vegetación."
+  },
+  {
+   "clave": "dicroidium",
+   "titulo": "Dicroidium",
+   "dato": "La planta que domina el Triásico del sur",
+   "texto": "Un \"helecho con semilla\" cuyas frondas se bifurcan en forma de Y. Formaba bosques en todo Gondwana, el supercontinente del que San Juan era parte."
+  },
+  {
+   "clave": "neocalamites",
+   "titulo": "Neocalamites",
+   "dato": "Colas de caballo gigantes",
+   "texto": "Tallos articulados con anillos de hojas finas, en las orillas húmedas de los ríos. Sus parientes actuales, los equisetos, miden pocos centímetros."
+  },
+  {
+   "clave": "ceniza",
+   "titulo": "¿Cómo se fecha un fósil?",
+   "dato": "Relojes dentro de la ceniza",
+   "texto": "Los restos quedaron enterrados en el barro de ríos y crecidas. Entre esas capas hay ceniza volcánica con cristales que funcionan como relojes radiactivos. Por eso sabemos que Ischigualasto tiene alrededor de 231 millones de años."
+  },
+  {
+   "clave": "hoy",
+   "titulo": "Parque Provincial Ischigualasto",
+   "dato": "Una ventana única al origen de los dinosaurios",
+   "texto": "Muestra casi todo el Triásico en capas continuas. Por eso es Patrimonio de la Humanidad junto con Talampaya. Los fósiles originales se estudian en San Juan."
+  }
+ ]
+}

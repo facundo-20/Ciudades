@@ -1,0 +1,116 @@
+{
+ "terrenos": [
+  {
+   "nombre": "hoy_lejos",
+   "era": "hoy",
+   "cual": "lejos",
+   "x0": -4096.0,
+   "z0": -4096.0,
+   "lado": 8192.0,
+   "res": 2049,
+   "hmin": -32.6278,
+   "hmax": 494.8727,
+   "alturas": "valle/hoy_lejos.r16d.gz",
+   "capas": [
+    "arcilla_gris",
+    "arcilla_clara",
+    "estratos",
+    "ripio"
+   ],
+   "capas_png": [
+    "valle/hoy_lejos_capas0.png"
+   ],
+   "capas_res": 512
+  },
+  {
+   "nombre": "hoy_cerca",
+   "era": "hoy",
+   "cual": "cerca",
+   "x0": -1080.0,
+   "z0": -1080.0,
+   "lado": 2048.0,
+   "res": 2049,
+   "hmin": -0.4899,
+   "hmax": 347.2114,
+   "alturas": "valle/hoy_cerca.r16d.gz",
+   "capas": [
+    "arcilla_gris",
+    "arcilla_clara",
+    "estratos",
+    "ripio"
+   ],
+   "capas_png": [
+    "valle/hoy_cerca_capas0.png"
+   ],
+   "capas_res": 1024
+  }
+ ],
+ "camara_hoy": {
+  "desde": [
+   -460.0,
+   22.13,
+   -440.0
+  ],
+  "hasta": [
+   -300.0,
+   45.5,
+   -280.0
+  ],
+  "mira": [
+   300.0,
+   112.13,
+   380.0
+  ]
+ },
+ "sol_hoy": {
+  "elevacion": 25.0,
+  "azimut_brujula": 255.0,
+  "hacia_sol": [
+   -0.87543,
+   0.42262,
+   -0.23457
+  ]
+ },
+ "paleta_albedo_lineal": {
+  "arcilla_clara": [
+   0.2995,
+   0.2997,
+   0.2875
+  ],
+  "arcilla_gris": [
+   0.2949,
+   0.267,
+   0.2175
+  ],
+  "estratos": [
+   0.2836,
+   0.1467,
+   0.1024
+  ],
+  "ripio": [
+   0.1662,
+   0.112,
+   0.0813
+  ]
+ },
+ "origen_utm": {
+  "crs": "EPSG:32719",
+  "este": 603800.0,
+  "norte": 6674752.0,
+  "base_msnm": 1250.0
+ },
+ "referencias": {
+  "centro_visitantes": [
+   -67.8422,
+   -30.1633
+  ],
+  "valle_pintado_aprox": [
+   -67.8775,
+   -30.1372
+  ]
+ },
+ "atribucion": [
+  "Copernicus DEM GLO-30 © DLR e.V. 2010-2014 y © Airbus Defence and Space GmbH 2014-2018, provisto bajo COPERNICUS por la Unión Europea y la ESA",
+  "Contiene datos modificados de Copernicus Sentinel 2026 (Sentinel-2 L2A, 26/09/2026)"
+ ]
+}

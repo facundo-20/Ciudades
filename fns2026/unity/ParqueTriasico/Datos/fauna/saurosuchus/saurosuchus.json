@@ -1,0 +1,22 @@
+{
+ "especie": "saurosuchus",
+ "tipo": "cuadrupedo",
+ "huesos": 28,
+ "vertices": 20285,
+ "vertices_en_patas": 7009,
+ "patas": [
+  "del_izq",
+  "del_der",
+  "tra_izq",
+  "tra_der"
+ ],
+ "velocidad_caminar_m_s": 0.99,
+ "ciclo_s": 1.5,
+ "animaciones": [
+  "caminar",
+  "quieto",
+  "olfatear"
+ ],
+ "largo_m": 6.0,
+ "alto_m": 1.802
+}

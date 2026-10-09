@@ -1,0 +1,19 @@
+{
+  "_nota": "Sala abierta como la del piso LED: piso 7,5 x 5 m, fondo y laterales de 3 m, pitch 3,9 mm. Atlas: el piso al centro y las paredes abatidas hacia afuera, cada una con el borde que toca el piso pegado a él (giro en grados, sentido horario). Origen en el centro del piso; x a la derecha, y arriba, z hacia el fondo. El fondo va primero: ahí van los textos y ahí mira el sensor de la pared.",
+  "modo": "cubo",
+  "lienzo_ancho": 3461,
+  "lienzo_alto": 2051,
+  "ojo": [0.0, 1.6, 0.0],
+  "ojo_rango_x": 2.5,
+  "escala_mundo": 1.0,
+  "superficies": [
+    { "nombre": "fondo", "abajo_izq": [-3.75, 0.0, 2.5], "abajo_der": [3.75, 0.0, 2.5], "arriba_izq": [-3.75, 3.0, 2.5],
+      "ancho_px": 1923, "alto_px": 769, "lienzo_x": 769, "lienzo_y": 0, "giro": 0 },
+    { "nombre": "piso", "abajo_izq": [-3.75, 0.0, -2.5], "abajo_der": [3.75, 0.0, -2.5], "arriba_izq": [-3.75, 0.0, 2.5],
+      "ancho_px": 1923, "alto_px": 1282, "lienzo_x": 769, "lienzo_y": 769, "giro": 0 },
+    { "nombre": "izquierda", "abajo_izq": [-3.75, 0.0, -2.5], "abajo_der": [-3.75, 0.0, 2.5], "arriba_izq": [-3.75, 3.0, -2.5],
+      "ancho_px": 1282, "alto_px": 769, "lienzo_x": 0, "lienzo_y": 769, "giro": 270 },
+    { "nombre": "derecha", "abajo_izq": [3.75, 0.0, 2.5], "abajo_der": [3.75, 0.0, -2.5], "arriba_izq": [3.75, 3.0, 2.5],
+      "ancho_px": 1282, "alto_px": 769, "lienzo_x": 2692, "lienzo_y": 769, "giro": 90 }
+  ]
+}

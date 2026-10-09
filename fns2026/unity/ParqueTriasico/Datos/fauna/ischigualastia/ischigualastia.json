@@ -1,0 +1,22 @@
+{
+ "especie": "ischigualastia",
+ "tipo": "cuadrupedo",
+ "huesos": 28,
+ "vertices": 18310,
+ "vertices_en_patas": 8323,
+ "patas": [
+  "del_izq",
+  "del_der",
+  "tra_izq",
+  "tra_der"
+ ],
+ "velocidad_caminar_m_s": 0.65,
+ "ciclo_s": 1.6,
+ "animaciones": [
+  "caminar",
+  "quieto",
+  "pastar"
+ ],
+ "largo_m": 3.5,
+ "alto_m": 1.51
+}

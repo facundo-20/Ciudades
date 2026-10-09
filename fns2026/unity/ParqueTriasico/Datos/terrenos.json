@@ -1,0 +1,52 @@
+{
+ "triasico_cerca": {
+  "nombre": "triasico_cerca",
+  "era": "triasico",
+  "cual": "cerca",
+  "x0": -226.0,
+  "z0": -256.0,
+  "lado": 512.0,
+  "res": 2049,
+  "hmin": -6.9308,
+  "hmax": 23.3139,
+  "alturas": "triasico_cerca.r16d.gz",
+  "capas": [
+   "barro",
+   "barro_humedo",
+   "arena",
+   "hojarasca",
+   "loma",
+   "basalto"
+  ],
+  "capas_png": [
+   "triasico_cerca_capas0.png",
+   "triasico_cerca_capas1.png"
+  ],
+  "capas_res": 1025
+ },
+ "triasico_lejos": {
+  "nombre": "triasico_lejos",
+  "era": "triasico",
+  "cual": "lejos",
+  "x0": -3826.0,
+  "z0": -3840.0,
+  "lado": 8192.0,
+  "res": 1025,
+  "hmin": -6.8,
+  "hmax": 260.1333,
+  "alturas": "triasico_lejos.r16d.gz",
+  "capas": [
+   "barro",
+   "barro_humedo",
+   "arena",
+   "hojarasca",
+   "loma",
+   "basalto"
+  ],
+  "capas_png": [
+   "triasico_lejos_capas0.png",
+   "triasico_lejos_capas1.png"
+  ],
+  "capas_res": 513
+ }
+}

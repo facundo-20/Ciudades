@@ -1,0 +1,23 @@
+{
+    "name": "FNS.Editor",
+    "rootNamespace": "FNS.Editor",
+    "references": [
+        "FNS.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Klak.Spout.Runtime",
+        "Klak.Syphon.Runtime"
+    ],
+    "includePlatforms": [ "Editor" ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        { "name": "jp.keijiro.klak.spout", "expression": "0.0.0", "define": "FNS_SPOUT" },
+        { "name": "jp.keijiro.klak.syphon", "expression": "0.0.0", "define": "FNS_SYPHON" }
+    ],
+    "noEngineReferences": false
+}
