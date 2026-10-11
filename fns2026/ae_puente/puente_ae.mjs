@@ -28,6 +28,8 @@ const COLA = join(BASE, 'cola');
 const HECHOS = join(BASE, 'hechos');
 const SOBRE = join(BASE, 'sobre_ae.jsx');
 const TOPE_MIN = Number(process.env.PUENTE_TOPE_MIN || 30);   // un trabajo colgado no traba el puente
+const REINTENTO_MIN = 10;   // un envío fallido (p. ej. modelos pesados) se reintenta cada 10 min, no cada ciclo
+let ultimoIntento = 0;
 
 function git(...args) {
   return execFileSync('git', args, { cwd: RAIZ, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -94,6 +96,14 @@ async function ciclo(ae) {
     console.log(`  ${readFileSync(salida, 'utf8').slice(0, 200)}`);
     hubo = true;
   }
+  // ¿quedó algo sin subir de antes? (un envío cortado): antes se perdía hasta el próximo trabajo
+  let adelante = 0;
+  try { adelante = Number(git('rev-list', '--count', `origin/${RAMA}..HEAD`)); } catch { /* sin rama remota todavía */ }
+  if (!hubo && adelante > 0 && Date.now() - ultimoIntento > REINTENTO_MIN * 60000) {
+    ultimoIntento = Date.now();
+    try { git('push', 'origin', RAMA); console.log(`  ${adelante} commit(s) pendientes subidos`); }
+    catch (e) { console.log('push pendiente falló (reintento en 10 min):', e.message.split('\n')[0]); }
+  }
   if (hubo) {
     try {
       git('add', 'fns2026/ae_puente/hechos');
@@ -115,6 +125,8 @@ if (!ae) {
     + ' Mac: el nombre de la app, p. ej. "Adobe After Effects 2025").');
   process.exit(1);
 }
+// envíos grandes (modelos 3D de decenas de MB): sin esto, GitHub suele cortar con "RPC failed"
+try { git('config', 'http.postBuffer', '1048576000'); git('config', 'http.version', 'HTTP/1.1'); } catch { /* sigue igual */ }
 console.log(`Puente AE listo · After: ${ae} · rama ${RAMA} · cada ${CADA_S} s · Ctrl+C para cortar`);
 // el puente se anuncia: así la sesión de Claude sabe que del otro lado hay alguien
 mkdirSync(HECHOS, { recursive: true });

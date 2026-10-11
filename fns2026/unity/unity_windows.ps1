@@ -142,11 +142,25 @@ if (-not $SinSubir -and (Get-Command git -ErrorAction SilentlyContinue)) {
     }
     Push-Location $raizRepo
     try {
+        # envíos grandes: sin esto GitHub suele cortar con "RPC failed" al subir modelos 3D
+        git config http.postBuffer 1048576000
+        git config http.version HTTP/1.1
         git add (Join-Path $aqui "pruebas_pc") | Out-Null
-        if (Test-Path $dinosPc) { git add $dinosPc | Out-Null }
         git commit -m "Unity: informe y capturas de la PC" | Out-Host
         git pull --no-rebase --no-edit origin $RAMA | Out-Host
         git push origin $RAMA | Out-Host
+        # cada dinosaurio en su propio commit y envío (~30 MB c/u): 300 MB juntos fallaban
+        if (Test-Path $dinosPc) {
+            foreach ($g in Get-ChildItem $dinosPc -Filter *.glb) {
+                git add $g.FullName | Out-Null
+                git diff --cached --quiet
+                if ($LASTEXITCODE -ne 0) {
+                    git commit -m "Unity: dinosaurio de Meshy $($g.Name)" | Out-Null
+                    git push origin $RAMA | Out-Host
+                    if ($LASTEXITCODE -eq 0) { Write-Host "   subido: $($g.Name)" } else { Write-Host "   no pude subir $($g.Name)" -ForegroundColor Red; break }
+                }
+            }
+        }
     } catch { Write-Host "   no pude subir (sigue en $destino): $($_.Exception.Message)" }
     Pop-Location
 }
