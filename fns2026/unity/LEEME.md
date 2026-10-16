@@ -11,6 +11,7 @@ La versión de máxima calidad: en tiempo real, interactiva y pensada para la sa
   - relieve de Copernicus de 30 m y color de Sentinel-2 del 26/09/2026;
   - una simulación de erosión que agrega cárcavas a 1 m;
   - el paredón de 280 m de las Barrancas Coloradas, con estratos horizontales.
+- **Gaussian splats horneados de Cycles** (`../pipeline/splats/`): la flora de cada capítulo con la luz completa de Cycles, dibujada en vivo. Se tapa con los dinosaurios y se apoya en el terreno de HDRP. `--sin-splats` la apaga.
 - **Luz física** con HDRP:
   - sol de 120.000 lux, cielo físico, nubes y niebla volumétricas;
   - río con el sistema de agua, columna del volcán y lluvia de ceniza;
@@ -48,6 +49,7 @@ El script hace solo:
 | `--spout NOMBRE` (Windows) / `--syphon NOMBRE` (Mac) | Manda la imagen a TouchDesigner o Resolume Arena. |
 | `--osc 7001,10000` | Puertos de los sensores. Los mensajes son los del stand: `/wall/touch/<n>/x\|y\|active`, `/body/x`, `/body/present`, `/touch/u\|v\|down`, `/gesto/<nombre>`. |
 | `--simular` | Un visitante inventado, para dejarlo andando sin sensores. |
+| `--sin-splats` | Sin los Gaussian splats (vuelve la vegetación de mallas). |
 | `--capitulo N`, `--sin-auto`, `--sin-textos` | Arrancar en un capítulo, no avanzar solo, sin títulos ni fichas. |
 | `--capturas CARPETA` | Saca un PNG por capítulo y un `informe.json` con los cuadros por segundo, y se cierra. |
 
@@ -62,6 +64,8 @@ El script hace solo:
 | `texturas_suelo.py` | Las texturas PBR procedurales y repetibles: barro, arena, hojarasca de folíolos, arcilla cuarteada, estratos, ripio y basalto. |
 | `flora_lod.py` | Los niveles de detalle de la flora, al 30 % y al 8 %. |
 | `../pipeline/rig_fauna.py` | El esqueleto y las animaciones de cada animal de Meshy, en `Datos/fauna/`. |
+| `../pipeline/splats/ENTRENAR_SPLATS.bat` | Los Gaussian splats de cada capítulo, en `Datos/splats/`: los `.ply` quedan en la PC y los `.json` van a la rama. |
+| `../pipeline/hunyuan/HUNYUAN_LOTE.bat` | El Hongo y el Submarino desde fotos propias (Hunyuan3D-2), en `fns2026/modelos/`. |
 
 Los modelos de Meshy de la PC (por ejemplo, `Descargas/dinos_triasico`) entran por `Datos/fauna_pc/<especie>/` y reemplazan a los de la web.
 

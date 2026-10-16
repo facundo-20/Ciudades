@@ -17,6 +17,8 @@ namespace FNS
         public string especie;
         public GameObject prefab;              // con Animator (estados caminar / quieto / pastar u olfatear)
         public float velocidad = 1f;           // m/s del ciclo de caminar
+        public float ciclo = 1f;               // s de un ciclo de paso (rig_fauna.py): marca las pisadas
+        public int patas = 2;                  // 2 bípedo, 4 cuadrúpedo
     }
 
     public class Fauna : MonoBehaviour
@@ -24,6 +26,7 @@ namespace FNS
         public Director director;
         public ModeloAnimal[] modelos;
         public float radioActivo = 220f;       // más lejos de la sala, los animales se congelan (ahorra CPU)
+        public Sonido sonido;                  // opcional: pisadas y voces
 
         readonly List<Animal> residentes = new List<Animal>();
         readonly List<Animal> deEncuentro = new List<Animal>();
@@ -63,6 +66,9 @@ namespace FNS
             a.especie = m.especie;
             a.velocidad = m.velocidad;
             a.director = director;
+            a.sonido = sonido;
+            a.ciclo = m.ciclo;
+            a.patas = m.patas;
             a.Iniciar();
             return a;
         }
@@ -95,6 +101,7 @@ namespace FNS
                     Vector3 hasta = sala.TransformPoint(new Vector3(-14f * lado, 0, z + 1.5f));
                     var a = Crear(m, desde, Quaternion.LookRotation(medio - desde));
                     a.Recorrer(new[] { desde, medio, hasta }, demora + i * 1.1f);
+                    if (UnityEngine.Random.value < 0.5f) a.Vocalizar(demora + i * 1.1f + UnityEngine.Random.Range(2f, 6f));
                     deEncuentro.Add(a);
                 }
                 demora += cuantos * 1.1f + 2.5f;
@@ -118,6 +125,12 @@ namespace FNS
         public Director director;
         public Vector3 hogar;
         public bool Activo { get; set; } = true;
+        public Sonido sonido;
+        public float ciclo = 1f;
+        public int patas = 2;
+
+        AudioSource fuente;
+        float relojPaso, proximaVoz = -1f;
 
         enum Modo { Quieto, Pastar, Caminar, Recorrido, Mirar }
         Modo modo = Modo.Quieto;
@@ -133,6 +146,19 @@ namespace FNS
         public void Iniciar()
         {
             animador = GetComponentInChildren<Animator>();
+            if (sonido)
+            {
+                // la voz y las pisadas salen del animal (3D): se oye de qué lado viene y a qué distancia
+                fuente = gameObject.AddComponent<AudioSource>();
+                fuente.spatialBlend = 1f;
+                fuente.rolloffMode = AudioRolloffMode.Logarithmic;
+                var sp = sonido.De(especie);
+                fuente.minDistance = sp != null && sp.peso == "pesado" ? 6f : sp != null && sp.peso == "liviano" ? 1.5f : 3f;
+                fuente.maxDistance = 90f;
+                fuente.dopplerLevel = 0.2f;
+                fuente.playOnAwake = false;
+                proximaVoz = Time.time + UnityEngine.Random.Range(8f, 30f);
+            }
             estadoQuieto = Tiene("pastar") ? "pastar" : "olfatear";
             espera = UnityEngine.Random.Range(2f, 8f);
             Poner(UnityEngine.Random.value < 0.5f ? "quieto" : estadoQuieto, UnityEngine.Random.value);
@@ -172,6 +198,35 @@ namespace FNS
             modo = Modo.Mirar;
             reloj = 0;
             Poner("quieto");
+            Vocalizar(0.4f);                        // responde al toque
+        }
+
+        /// <summary>Que vocalice dentro de "demora" segundos (si hay sonido y voces de su especie).</summary>
+        public void Vocalizar(float demora) => proximaVoz = Time.time + demora;
+
+        void Sonar(float dt, bool caminando, float rapidez)
+        {
+            if (!fuente) return;
+            var sp = sonido.De(especie);
+            if (proximaVoz >= 0 && Time.time >= proximaVoz)
+            {
+                if (sp != null && sp.voces.Length > 0)
+                {
+                    fuente.pitch = UnityEngine.Random.Range(0.92f, 1.08f);
+                    fuente.PlayOneShot(sp.voces[UnityEngine.Random.Range(0, sp.voces.Length)], 0.9f);
+                }
+                proximaVoz = Time.time + UnityEngine.Random.Range(14f, 45f);
+            }
+            if (!caminando) { relojPaso = 0; return; }
+            // una pisada por pata apoyada: 2 por ciclo en bípedos, 4 en cuadrúpedos
+            relojPaso += dt * rapidez;
+            float entrePasos = Mathf.Max(0.12f, ciclo / Mathf.Max(2, patas));
+            if (relojPaso >= entrePasos)
+            {
+                relojPaso -= entrePasos;
+                var clip = sonido.Pisada(sp != null ? sp.peso : "medio", sonido.SueloBarroso);
+                if (clip) fuente.PlayOneShot(clip, UnityEngine.Random.Range(0.55f, 0.8f));
+            }
         }
 
         void Update()
@@ -222,6 +277,8 @@ namespace FNS
                     break;
             }
             if (animador) animador.speed = 1f;
+            bool caminando = modo == Modo.Caminar || (modo == Modo.Recorrido && reloj >= espera);
+            Sonar(dt, caminando, modo == Modo.Recorrido ? 1.15f : 1f);
         }
 
         bool Avanzar(Vector3 a, float v, float dt)

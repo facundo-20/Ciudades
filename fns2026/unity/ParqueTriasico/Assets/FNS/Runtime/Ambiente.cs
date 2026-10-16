@@ -35,6 +35,9 @@ namespace FNS
         Vector3 haciaSol = new Vector3(0.3f, 0.6f, 0.3f), haciaSolObj;
         float recorrido = 600, recorridoObj = 600;
         float ceniza, cenizaObj, volcan, volcanObj, compensacion, compensacionObj, fundido;
+
+        /// <summary>Actividad del volcán ahora (0 dormido, 1 en erupción): la usa el sonido.</summary>
+        public float Volcan => volcan;
         Color albedoNiebla = Color.white, albedoObj = Color.white;
         bool fundidoClaro;
 

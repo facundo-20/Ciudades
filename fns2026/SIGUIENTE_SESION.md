@@ -1,5 +1,36 @@
 # Para la próxima sesión
 
+## Estado real (16/10/2026)
+
+### Lo que pidió Facu desde el 11/10
+
+- "pip install kaggle, gaussian splatting agregá a todo, y buscá repos gratis que necesites para que esto sea pro"
+- "usá el plugin de hunyuan en blender y también la actualización de blender con el 3D SSHG" (el SSHG es 3DGS: Blender 5.3 importa y renderiza splats de forma nativa)
+
+### Hecho y probado en la nube
+
+- **Gaussian splats horneados de Cycles** (`pipeline/splats/`, ver su LEEME):
+  - vistas desde la sala, entrenamiento con Brush v0.3.0, poda y entrega a Unity y a la web;
+  - probado de punta a punta en el bosque, en chico (CPU con Vulkan por software): 25,3 dB de PSNR en vistas no entrenadas;
+  - la convención de cámaras se probó con una esfera: error menor a 0,1 px.
+- **Unity:** UnityGaussianSplatting v1.1.1 (MIT) embebido y verificado contra HDRP 17.3.
+  - El Constructor crea los assets y el pase después del posproceso.
+  - `Splats.cs` los prende por capítulo, los funde y saca la vegetación de mallas donde hay splat.
+- **Web:** three.js 0.180 + Spark 2.3.1, cargado solo si hay splats. `npm run probar` pasa entero.
+- **Blender 5.3** (`importar_en_blender.py`): import nativo de splats (vista previa antes de 5.3) y alineación de capturas reales, con la ubicación exportada a Unity y la web (error de 2e-5 m).
+- **Hunyuan3D-2** (`pipeline/hunyuan/`): instalador del portable para la OMEN, servidor oficial, plugin oficial habilitado en Blender (probado) y lote foto → GLB (probado contra un servidor simulado).
+  - El Hongo y el Submarino quedan a su tamaño real (6 m y 25 m), con roca triplanar si vienen sin textura.
+  - Licencia: lo generado va en la sala; la web pública sigue con Meshy.
+- **Kaggle** (`pipeline/kaggle/`): CLI 2.2.4 instalada; kernel + lanzador para hornear splats con GPU gratis sin la PC; `entrenar_gsplat.py` como alternativa a Brush.
+- **Cycles** ahora elige una GPU que exista. Antes, con OptiX sin placa, renderizaba en CPU sin avisar.
+
+### Bloqueado
+
+1. **La PC no responde desde el 11/10.** El trabajo 010 (subir los dinos de Meshy de a uno, probado con un remoto que corta envíos grandes) espera en la cola. Hace falta el puente abierto (`fns2026\ae_puente\PUENTE_AE.bat`) o correr `CONSTRUIR_Y_PROBAR.bat`.
+2. **Kaggle:** faltan `KAGGLE_USERNAME` y `KAGGLE_KEY` como secretos del entorno, y `www.kaggle.com` en los dominios permitidos. Con eso, `pipeline/kaggle/hornear_en_kaggle.sh bosque` hornea solo.
+3. **Adobe (Creative Cloud):** el entorno bloquea `adobe.io` y `adobe.com`. Los dinos tampoco están en su Creative Cloud.
+4. **En la OMEN:** `ENTRENAR_SPLATS.bat` (de noche) e `INSTALAR_HUNYUAN.bat` + `HUNYUAN_LOTE.bat` con fotos del Hongo y del Submarino.
+
 ## Estado real (09/10/2026)
 
 ### Unity HDRP (nuevo, `fns2026/unity/`; ver `unity/LEEME.md`)

@@ -85,7 +85,7 @@ namespace FNS.Editor
         static void Carpetas()
         {
             foreach (var c in new[] { "Render", "Datos", "Modelos/flora", "Modelos/fauna", "Modelos/lugares", "Materiales", "Suelo",
-                                      "Terrenos", "Mallas", "Prefabs", "Animacion", "Escenas", "Texturas", "Splats" })
+                                      "Terrenos", "Mallas", "Prefabs", "Animacion", "Escenas", "Texturas", "Splats", "Sonido" })
                 Directory.CreateDirectory(Path.Combine(Proyecto, Raiz, c));
             AssetDatabase.Refresh();
         }
@@ -340,7 +340,7 @@ namespace FNS.Editor
         // ------------------------------------------------------------------------------------------
 
         [Serializable]
-        class InformeRig { public string especie; public float velocidad_caminar_m_s; public string[] animaciones; public string texturas; }
+        class InformeRig { public string especie; public float velocidad_caminar_m_s; public string[] animaciones; public string texturas; public string tipo; public float ciclo_s; }
 
         static List<ModeloAnimal> PrepararFauna(Mundo mundo)
         {
@@ -409,7 +409,11 @@ namespace FNS.Editor
                 string rutaPrefab = $"{Raiz}/Prefabs/{esp}.prefab";
                 var prefab = PrefabUtility.SaveAsPrefabAsset(go, rutaPrefab);
                 UnityEngine.Object.DestroyImmediate(go);
-                lista.Add(new ModeloAnimal { especie = esp, prefab = prefab, velocidad = rig.velocidad_caminar_m_s });
+                lista.Add(new ModeloAnimal
+                {
+                    especie = esp, prefab = prefab, velocidad = rig.velocidad_caminar_m_s,
+                    ciclo = rig.ciclo_s > 0 ? rig.ciclo_s : 1f, patas = rig.tipo == "cuadrupedo" ? 4 : 2,
+                });
                 Anotar($"fauna {esp}: {animaciones.Length} animaciones ({string.Join(", ", animaciones.Select(a => a.name))}), " +
                        $"camina a {rig.velocidad_caminar_m_s:0.00} m/s{(fuente != dir ? " · modelo de la PC" : "")}{(mat ? "" : " · SIN texturas")}");
             }
@@ -528,6 +532,67 @@ namespace FNS.Editor
             volumen.injectionPoint = CustomPassInjectionPoint.AfterPostProcess;
             volumen.AddPassOfType(tPase);
             Anotar($"splats: {lista.Count} en la escena ({string.Join(", ", lista.Select(x => x.capitulo))})");
+        }
+
+        // ------------------------------------------------------------------------------------------
+        // 3c. sonido (pipeline/sonido/sonido_triasico.py → Datos/sonido/*.ogg)
+        // ------------------------------------------------------------------------------------------
+
+        // qué pisadas usa cada especie (por su peso)
+        static readonly Dictionary<string, string> PesoEspecie = new Dictionary<string, string>
+        {
+            { "eoraptor", "liviano" }, { "eodromaeus", "liviano" }, { "pisanosaurus", "liviano" }, { "panphagia", "liviano" },
+            { "hyperodapedon", "liviano" }, { "exaeretodon", "medio" }, { "chromogisaurus", "medio" }, { "sanjuansaurus", "medio" },
+            { "herrerasaurus", "pesado" }, { "ischigualastia", "pesado" }, { "saurosuchus", "pesado" },
+        };
+
+        static void ArmarSonido(GameObject sistemas, Director director, Fauna fauna, Ambiente ambiente, Transform carro)
+        {
+            // el oído de la sala: a la altura de los ojos (sin él Unity no suena)
+            var oido = new GameObject("Oido");
+            oido.transform.SetParent(carro, false);
+            oido.transform.localPosition = new Vector3(0, 1.6f, 0);
+            oido.AddComponent<AudioListener>();
+
+            string carpeta = Path.Combine(Datos, "sonido");
+            if (!Directory.Exists(carpeta)) { Anotar("sonido: falta Datos/sonido (correr pipeline/sonido/sonido_triasico.py)"); return; }
+            var clips = new Dictionary<string, AudioClip>();
+            foreach (var archivo in Directory.GetFiles(carpeta, "*.ogg"))
+            {
+                string nombre = Path.GetFileNameWithoutExtension(archivo);
+                string ruta = Copiar(archivo, $"{Raiz}/Sonido/{nombre}.ogg");
+                AssetDatabase.ImportAsset(ruta);
+                var imp = (AudioImporter)AssetImporter.GetAtPath(ruta);
+                var cfg = imp.defaultSampleSettings;
+                bool largo = nombre.StartsWith("ambiente_") || nombre == "volcan";
+                // los loops largos se leen del disco de a poco; los cortos, ya descomprimidos (sin demora)
+                cfg.loadType = largo ? AudioClipLoadType.Streaming : AudioClipLoadType.DecompressOnLoad;
+                cfg.compressionFormat = AudioCompressionFormat.Vorbis;
+                cfg.quality = 0.7f;
+                imp.defaultSampleSettings = cfg;
+                imp.SaveAndReimport();
+                var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(ruta);
+                if (clip) clips[nombre] = clip;
+            }
+            var son = sistemas.AddComponent<Sonido>();
+            son.ambiente = ambiente;
+            son.ambientes = clips.Where(kv => kv.Key.StartsWith("ambiente_")).Select(kv => kv.Value).ToArray();
+            clips.TryGetValue("volcan", out son.volcan);
+            son.volcanEn = ambiente.columnaVolcan ? ambiente.columnaVolcan.transform : null;
+            son.especies = PesoEspecie.Select(kv => new SonidoEspecie
+            {
+                especie = kv.Key, peso = kv.Value,
+                voces = clips.Where(c => c.Key.StartsWith($"voz_{kv.Key}_")).OrderBy(c => c.Key).Select(c => c.Value).ToArray(),
+            }).ToArray();
+            son.pisadas = new[] { "liviano", "medio", "pesado" }.Select(p => new PisadasPeso
+            {
+                peso = p,
+                barro = clips.Where(c => c.Key.StartsWith($"pisada_{p}_barro_")).Select(c => c.Value).ToArray(),
+                seco = clips.Where(c => c.Key.StartsWith($"pisada_{p}_seco_")).Select(c => c.Value).ToArray(),
+            }).ToArray();
+            director.sonido = son;
+            fauna.sonido = son;
+            Anotar($"sonido: {clips.Count} clips ({son.ambientes.Length} ambientes, {son.especies.Count(e => e.voces.Length > 0)} especies con voz)");
         }
 
         // ------------------------------------------------------------------------------------------
@@ -922,6 +987,7 @@ namespace FNS.Editor
             ArmarSplats(splats, raizTri.transform, splatsC);
 
             Volcan(mundo, raizTri.transform, ambiente);
+            ArmarSonido(sistemas, director, faunaC, ambiente, carro);
             Ceniza(ambiente);
             SalidaVideo(sistemas, arranque);
 

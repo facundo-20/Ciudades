@@ -1,0 +1,96 @@
+{
+ "frecuencia_muestreo": 48000,
+ "loops_s": 48.0,
+ "archivos": [
+  {
+   "archivo": "ambiente_titulo.ogg",
+   "rms_db": -23.1,
+   "salto_costura": 0.0028
+  },
+  {
+   "archivo": "ambiente_rio.ogg",
+   "rms_db": -22.7,
+   "salto_costura": 0.0599
+  },
+  {
+   "archivo": "ambiente_bosque.ogg",
+   "rms_db": -24.2,
+   "salto_costura": 0.0075
+  },
+  {
+   "archivo": "ambiente_llanura.ogg",
+   "rms_db": -21.5,
+   "salto_costura": 0.0045
+  },
+  {
+   "archivo": "ambiente_ceniza.ogg",
+   "rms_db": -23.4,
+   "salto_costura": 0.01
+  },
+  {
+   "archivo": "ambiente_hoy.ogg",
+   "rms_db": -20.8,
+   "salto_costura": 0.008
+  },
+  {
+   "archivo": "volcan.ogg",
+   "rms_db": -18.1
+  },
+  {
+   "archivo": "voz_eoraptor_*.ogg",
+   "tipo": "arrullo",
+   "largo_m": 1.0
+  },
+  {
+   "archivo": "voz_eodromaeus_*.ogg",
+   "tipo": "arrullo",
+   "largo_m": 1.2
+  },
+  {
+   "archivo": "voz_pisanosaurus_*.ogg",
+   "tipo": "arrullo",
+   "largo_m": 1.0
+  },
+  {
+   "archivo": "voz_panphagia_*.ogg",
+   "tipo": "arrullo",
+   "largo_m": 1.3
+  },
+  {
+   "archivo": "voz_chromogisaurus_*.ogg",
+   "tipo": "arrullo",
+   "largo_m": 2.0
+  },
+  {
+   "archivo": "voz_herrerasaurus_*.ogg",
+   "tipo": "retumbe",
+   "largo_m": 4.0
+  },
+  {
+   "archivo": "voz_sanjuansaurus_*.ogg",
+   "tipo": "retumbe",
+   "largo_m": 3.0
+  },
+  {
+   "archivo": "voz_saurosuchus_*.ogg",
+   "tipo": "bramido",
+   "largo_m": 6.0
+  },
+  {
+   "archivo": "voz_hyperodapedon_*.ogg",
+   "tipo": "siseo",
+   "largo_m": 1.3
+  },
+  {
+   "archivo": "voz_exaeretodon_*.ogg",
+   "tipo": "resoplido",
+   "largo_m": 1.8
+  },
+  {
+   "archivo": "voz_ischigualastia_*.ogg",
+   "tipo": "grunido",
+   "largo_m": 3.5
+  }
+ ],
+ "mb": 4.54
+}
