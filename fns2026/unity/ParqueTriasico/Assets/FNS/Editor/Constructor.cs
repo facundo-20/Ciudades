@@ -806,7 +806,7 @@ namespace FNS.Editor
                 go.isStatic = true;
                 Anotar($"paredón: {paredon.vertexCount:N0} vértices");
             }
-            LugaresDeHoy(raizHoy.transform, suelosHoy);
+            LugaresDeHoy(raizHoy.transform, suelosHoy, capas);
 
             // sol
             var solGo = new GameObject("Sol");
@@ -1140,17 +1140,21 @@ namespace FNS.Editor
             amb.cenizaSuelo = dp;
         }
 
-        static void LugaresDeHoy(Transform raiz, List<Terrain> suelos)
+        [Serializable] class InfoHunyuan { public bool textura; }
+
+        static void LugaresDeHoy(Transform raiz, List<Terrain> suelos, Dictionary<string, TerrainLayer> capas)
         {
-            // los modelos de Meshy de los lugares, si están bajados en esta máquina (correr_todo.py)
-            // UBICACIÓN APROXIMADA: no hay coordenadas públicas de cada formación; van a la vista del recorrido
-            var lugares = new (string nombre, string[] rutas, Vector3 pos, float giro)[]
+            // los modelos de los lugares, si están en esta máquina: de Meshy (correr_todo.py) o de
+            // Hunyuan3D-2 (pipeline/hunyuan/hunyuan_lote.py, desde fotos propias).
+            // UBICACIÓN APROXIMADA: no hay coordenadas públicas de cada formación; van a la vista del recorrido.
+            // largo: la medida mayor real (pipeline/lista_modelos.json); capa: la roca de su material
+            var lugares = new (string nombre, string[] rutas, Vector3 pos, float giro, float largo, string capa)[]
             {
-                ("el_hongo", new[] { Path.Combine(Fns, "modelos", "el_hongo", "el_hongo_alto.glb") }, new Vector3(-236f, 0, -175f), 30f),
+                ("el_hongo", new[] { Path.Combine(Fns, "modelos", "el_hongo", "el_hongo_alto.glb") }, new Vector3(-236f, 0, -175f), 30f, 6f, "arcilla_gris"),
                 ("el_submarino", new[] { Path.Combine(Fns, "modelos", "el_submarino", "el_submarino_alto.glb"), Path.Combine(Fns, "modelos_mac", "result.glb") },
-                 new Vector3(-101f, 0, -125f), 120f),
+                 new Vector3(-101f, 0, -125f), 120f, 25f, "arcilla_clara"),
             };
-            foreach (var (nombre, rutas, pos, giro) in lugares)
+            foreach (var (nombre, rutas, pos, giro, largo, capa) in lugares)
             {
                 string src = rutas.FirstOrDefault(File.Exists);
                 if (src == null) { Anotar($"hoy: {nombre} no está en esta máquina (se saltea)"); continue; }
@@ -1160,14 +1164,41 @@ namespace FNS.Editor
                 if (!modelo) continue;
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(modelo);
                 go.transform.SetParent(raiz, false);
+                go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0, giro, 0));
+                go.transform.localScale = Vector3.one;
+
+                // a su tamaño real: Hunyuan entrega todo normalizado (~1 m) y Meshy, a ojo
+                var rends = go.GetComponentsInChildren<Renderer>();
+                if (rends.Length > 0)
+                {
+                    var b = rends[0].bounds;
+                    foreach (var r in rends) b.Encapsulate(r.bounds);
+                    float mayor = Mathf.Max(b.size.x, b.size.y, b.size.z);
+                    if (mayor > 1e-3f) go.transform.localScale = Vector3.one * (largo / mayor);
+                }
+
+                // sin textura (Hunyuan sólo forma): la roca triplanar con estratos, como el paredón
+                string infoRuta = Path.Combine(Path.GetDirectoryName(src), nombre + "_hunyuan.json");
+                bool sinTextura = File.Exists(infoRuta) && !JsonUtility.FromJson<InfoHunyuan>(File.ReadAllText(infoRuta)).textura;
+                if (sinTextura && (capas.TryGetValue(capa, out var cp) || capas.TryGetValue("estratos", out cp)))
+                {
+                    var mat = Lit($"roca_{nombre}", cp.diffuseTexture, cp.normalMapTexture, cp.maskMapTexture,
+                                  new Color(cp.diffuseRemapMax.x, cp.diffuseRemapMax.y, cp.diffuseRemapMax.z), true, true, 6f);
+                    foreach (var r in go.GetComponentsInChildren<Renderer>())
+                        r.sharedMaterials = Enumerable.Repeat(mat, Mathf.Max(1, r.sharedMaterials.Length)).ToArray();
+                }
+
+                // apoyado en el terreno real, hundido 30 cm (no flota)
                 var p = pos;
                 foreach (var t in suelos)
                 {
                     var tp = t.transform.position; var tam = t.terrainData.size;
                     if (p.x >= tp.x && p.z >= tp.z && p.x <= tp.x + tam.x && p.z <= tp.z + tam.z) { p.y = t.SampleHeight(p) + tp.y - 0.3f; break; }
                 }
-                go.transform.SetPositionAndRotation(p, Quaternion.Euler(0, giro, 0));
-                Anotar($"hoy: {nombre} puesto (ubicación aproximada)");
+                var bs = go.GetComponentsInChildren<Renderer>().Select(r => r.bounds).DefaultIfEmpty(new Bounds()).Aggregate((x, y) => { x.Encapsulate(y); return x; });
+                go.transform.position = p - new Vector3(bs.center.x, bs.min.y, bs.center.z);
+                go.isStatic = true;
+                Anotar($"hoy: {nombre} puesto ({largo:0} m{(sinTextura ? ", roca triplanar" : "")}, ubicación aproximada)");
             }
         }
 
