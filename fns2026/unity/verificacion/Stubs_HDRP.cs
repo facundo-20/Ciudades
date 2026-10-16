@@ -204,6 +204,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public float fadeFactor { get; set; }
     }
 
+    // CustomPass / CustomPassVolume (RenderPipeline/RenderPass/CustomPass/*.cs de 6000.3/staging)
+    public enum CustomPassInjectionPoint { BeforeRendering = 0, AfterOpaqueDepthAndNormal = 5, AfterOpaqueColor = 7, AfterOpaqueAndSky = 6, BeforePreRefraction = 4, BeforeTransparent = 1, BeforePostProcess = 2, AfterPostProcess = 3 }
+    public abstract class CustomPass { }
+    public class CustomPassVolume : MonoBehaviour
+    {
+        public bool isGlobal { get; set; }
+        public float fadeRadius;
+        public float priority;
+        public List<CustomPass> customPasses = new List<CustomPass>();
+        public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeTransparent;
+        public CustomPass AddPassOfType(Type passType) => null;
+    }
+
     public static partial class HDMaterial
     {
         public static bool ValidateMaterial(Material material) => true;
@@ -232,5 +245,20 @@ namespace Klak.Syphon
         public string ServerName { get; set; }
         public CaptureMethod CaptureMethod { get; set; }
         public SyphonResources Resources { get; set; }
+    }
+}
+
+// UnityGaussianSplatting v1.1.1 (Packages/org.nesnausk.gaussian-splatting, MIT): sólo lo que usa el proyecto
+namespace GaussianSplatting.Runtime
+{
+    public class GaussianSplatAsset : ScriptableObject { }
+    public class GaussianSplatRenderer : MonoBehaviour
+    {
+        public GaussianSplatAsset m_Asset;
+        public int m_RenderOrder;
+        public float m_SplatScale = 1.0f;
+        public float m_OpacityScale = 1.0f;
+        public int m_SHOrder = 3;
+        public int m_SortNthFrame = 1;
     }
 }

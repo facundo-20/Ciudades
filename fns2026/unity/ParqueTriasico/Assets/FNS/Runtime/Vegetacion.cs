@@ -50,6 +50,29 @@ namespace FNS
         readonly List<Grupo> grupos = new List<Grupo>();
         public int Dibujadas { get; private set; }
 
+        // donde hay un splat horneado del capítulo (Splats) no se dibujan las mallas: quedarían
+        // plantas repetidas. La zona es una cápsula alrededor del recorrido de la sala.
+        bool excluye;
+        Vector2 exA, exB;
+        float exRadio;
+
+        public void Excluir(Vector3 a, Vector3 b, float radio)
+        {
+            excluye = true;
+            exA = new Vector2(a.x, a.z);
+            exB = new Vector2(b.x, b.z);
+            exRadio = radio;
+        }
+
+        public void SinExcluir() => excluye = false;
+
+        float DistanciaAlRecorrido(Vector2 p)
+        {
+            Vector2 ab = exB - exA;
+            float k = Mathf.Clamp01(Vector2.Dot(p - exA, ab) / Mathf.Max(ab.sqrMagnitude, 1e-6f));
+            return Vector2.Distance(p, exA + k * ab);
+        }
+
         void Start()
         {
             if (!datos) return;
@@ -106,6 +129,13 @@ namespace FNS
                     var c = new Vector3((kv.Key.x + 0.5f) * Trozo, ojo.y, (kv.Key.y + 0.5f) * Trozo);
                     float d = Vector2.Distance(new Vector2(c.x, c.z), new Vector2(ojo.x, ojo.z)) - Trozo * 0.7f;
                     if (d > lejos) continue;
+                    bool parcial = false;
+                    if (excluye)
+                    {
+                        float dc = DistanciaAlRecorrido(new Vector2(c.x, c.z));
+                        if (dc + Trozo * 0.71f < exRadio) continue;      // el trozo entero está en el splat
+                        parcial = dc - Trozo * 0.71f < exRadio;
+                    }
                     int lod = esp.lods.Length - 1;
                     for (int l = 0; l < esp.lods.Length && l < esp.hasta.Length; l++)
                         if (d < esp.hasta[l] * factorDistancia) { lod = l; break; }
@@ -113,6 +143,7 @@ namespace FNS
                     foreach (int i in kv.Value)
                     {
                         Matrix4x4 m = g.baseM[i];
+                        if (parcial && DistanciaAlRecorrido(new Vector2(m.m03, m.m23)) < exRadio) continue;
                         if (mecer)
                         {
                             float ang = esp.meceo * viento * (Mathf.Sin(t * 1.3f + g.fase[i]) * 0.8f + Mathf.Sin(t * 2.9f + 2f * g.fase[i]) * 0.35f);

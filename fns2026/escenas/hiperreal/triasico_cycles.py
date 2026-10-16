@@ -859,8 +859,13 @@ def cargar_molde(carpeta, nombre, carpeta_meshy=None):
         ruta = cand if os.path.exists(cand) else None
     ruta = ruta or os.path.join(carpeta, nombre, f"{nombre}_alto.glb")
     if not os.path.exists(ruta):
-        return None
-    print(f"   flora {nombre}: {'MESHY' if '_meshy' in ruta else 'procedural'}", flush=True)
+        # la misma planta que usan la web y Unity (experiencia/public/assets): así un splat horneado
+        # acá calza con la vegetación de mallas que dibuja Unity alrededor
+        web = os.path.join(AQUI, "..", "..", "experiencia", "public", "assets", f"{nombre}.glb")
+        if not os.path.exists(web):
+            return None
+        ruta = web
+    print(f"   flora {nombre}: {'MESHY' if '_meshy' in ruta else ('web' if 'public' in ruta else 'procedural')}", flush=True)
     antes = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=ruta)
     nuevos = [o for o in bpy.data.objects if o not in antes and o.type == "MESH"]
@@ -1167,8 +1172,14 @@ def pase_profundidad(ruta):
     return True
 
 
-def hacer_capitulo(clave, a):
+def armar_capitulo(clave, a, para_splats=False):
+    """Arma la escena del capítulo (sin renderizar). Con para_splats=True queda sólo lo que se
+    hornea en Gaussian splats (pipeline/splats/vistas_blender.py): terreno y flora con la luz del
+    capítulo. Sin dinosaurios (en Unity y la web son mallas animadas), sin agua (la pone el
+    sistema de agua de HDRP), sin bruma ni horizonte ni volcán (los pone el motor en vivo)."""
     ancho, alto, muestras, volumetrica = CALIDADES[a.calidad]
+    if para_splats:
+        volumetrica = False
     cap = CAPITULOS[clave]
     bpy.ops.wm.read_factory_settings(use_empty=True)
     noise.seed_set(231)
@@ -1182,15 +1193,17 @@ def hacer_capitulo(clave, a):
     MODO["hoy"] = hoy
     adelante = -40 if hoy else 40           # el terreno fino, hacia donde mira la cámara
     t = terreno(cx + adelante, czw, lado, 0.6 if a.calidad == "prueba" else 0.35, hoy, cap["ceniza"])
-    if hay_rio(cx) > 0.2 and not hoy:
+    if hay_rio(cx) > 0.2 and not hoy and not para_splats:
         agua(cx + 40, czw, lado)
-    if hoy:
+    if hoy and not para_splats:
         barrancas((cx, czw), (cap["mira"][0], cap["mira"][2]), abertura=130)   # 130°: la panorámica del LED ve 81°
-    horizonte(cx, czw, t.data.materials[0])
+    if not para_splats:
+        horizonte(cx, czw, t.data.materials[0])
     cielo(*cap["sol"], cap["bruma"], volumetrica, cap["ceniza"], limpio=hoy)
     if volumetrica:
         bruma_local(centro, cap["bruma"], cap["ceniza"])
-    volcan(cap["volcan"])
+    if not para_splats:
+        volcan(cap["volcan"])
 
     moldes = {}
     for nombre in {r[0] for r in REGLAS}:
@@ -1204,11 +1217,19 @@ def hacer_capitulo(clave, a):
     CAMINO["cono"] = (medio.x, -medio.y, cap["mira"][0], cap["mira"][2]) if clave == "llanura" else None
     n_plantas = sembrar(moldes, cx + 40, czw, lado * 0.8, densidad, hoy)
     # hoy no hay animales vivos: sólo el paisaje (los fósiles los pone la capa interactiva)
-    puestos, faltan = (0, []) if hoy else poner_dinosaurios(os.path.abspath(a.modelos), cx)
+    puestos, faltan = (0, []) if (hoy or para_splats) else poner_dinosaurios(os.path.abspath(a.modelos), cx)
 
     cuadros = int(a.segundos * 30)
-    camara(cap, cuadros, a.animar)
+    cam = camara(cap, cuadros, a.animar)
     configurar_render(ancho, alto, muestras, cap.get("exposicion"))
+    return dict(cap=cap, carpeta=carpeta, camara=cam, plantas=n_plantas, puestos=puestos, faltan=faltan,
+                cuadros=cuadros, centro=centro, lado=lado, terreno=t)
+
+
+def hacer_capitulo(clave, a):
+    arm = armar_capitulo(clave, a)
+    carpeta, cuadros = arm["carpeta"], arm["cuadros"]
+    n_plantas, puestos, faltan = arm["plantas"], arm["puestos"], arm["faltan"]
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(carpeta, f"{clave}.blend"))
     esc = bpy.context.scene
     esc.render.image_settings.file_format = "PNG"

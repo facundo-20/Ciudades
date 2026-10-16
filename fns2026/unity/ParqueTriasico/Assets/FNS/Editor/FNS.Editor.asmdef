@@ -5,6 +5,7 @@
         "FNS.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
+        "GaussianSplatting",
         "Klak.Spout.Runtime",
         "Klak.Syphon.Runtime"
     ],

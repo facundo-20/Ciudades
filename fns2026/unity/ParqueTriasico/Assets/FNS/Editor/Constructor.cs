@@ -18,7 +18,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using GaussianSplatting.Runtime;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.Build.Reporting;
@@ -72,7 +74,8 @@ namespace FNS.Editor
             var flora = PrepararFlora();
             var fauna = PrepararFauna(mundo);
             var capas = PrepararSuelos();
-            ArmarEscena(mundo, flora, fauna, capas);
+            var splats = PrepararSplats();
+            ArmarEscena(mundo, flora, fauna, capas, splats);
             bool ok = true;
             if (compilar) ok = Compilar();
             GuardarInforme();
@@ -82,7 +85,7 @@ namespace FNS.Editor
         static void Carpetas()
         {
             foreach (var c in new[] { "Render", "Datos", "Modelos/flora", "Modelos/fauna", "Modelos/lugares", "Materiales", "Suelo",
-                                      "Terrenos", "Mallas", "Prefabs", "Animacion", "Escenas", "Texturas" })
+                                      "Terrenos", "Mallas", "Prefabs", "Animacion", "Escenas", "Texturas", "Splats" })
                 Directory.CreateDirectory(Path.Combine(Proyecto, Raiz, c));
             AssetDatabase.Refresh();
         }
@@ -414,6 +417,120 @@ namespace FNS.Editor
         }
 
         // ------------------------------------------------------------------------------------------
+        // 3b. Gaussian splats horneados (pipeline/splats → Datos/splats/<capitulo>.ply + .json)
+        // ------------------------------------------------------------------------------------------
+
+        [Serializable]
+        class RegionSplat
+        {
+            public string capitulo;
+            public float[] desde_blender, hasta_blender;
+            public float radio_m = 45f;
+            // opcional, para splats de capturas reales (fotos/video): dónde va en Unity
+            public float[] posicion, rotacion, escala;
+        }
+
+        class SplatPreparado { public string nombre; public GaussianSplatAsset asset; public RegionSplat region; }
+
+        const BindingFlags Privado = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+
+        static List<SplatPreparado> PrepararSplats()
+        {
+            var lista = new List<SplatPreparado>();
+            string carpeta = Path.Combine(Datos, "splats");
+            if (!Directory.Exists(carpeta)) { Anotar("splats: no hay (opcional: pipeline/splats/ENTRENAR_SPLATS)"); return lista; }
+            // el creador de assets del paquete es una ventana del editor sin API pública: se usa por
+            // reflexión, con los mismos pasos que su botón "Create Asset"
+            var tCreador = Type.GetType("GaussianSplatting.Editor.GaussianSplatAssetCreator, GaussianSplattingEditor");
+            if (tCreador == null) { Anotar("splats: falta el paquete org.nesnausk.gaussian-splatting"); return lista; }
+            string salida = Raiz + "/Splats";
+            foreach (var archivo in Directory.GetFiles(carpeta).Where(f => f.EndsWith(".ply") || f.EndsWith(".spz")).OrderBy(f => f))
+            {
+                string nombre = Path.GetFileNameWithoutExtension(archivo);
+                string rutaAsset = $"{salida}/{nombre}.asset";
+                string absAsset = Path.Combine(Proyecto, rutaAsset);
+                // crearlo tarda (comprime y agrupa los armónicos): sólo si el .ply es más nuevo
+                if (!File.Exists(absAsset) || File.GetLastWriteTimeUtc(absAsset) < File.GetLastWriteTimeUtc(archivo))
+                {
+                    var creador = ScriptableObject.CreateInstance(tCreador);
+                    try
+                    {
+                        tCreador.GetField("m_InputFile", Privado).SetValue(creador, archivo);
+                        tCreador.GetField("m_OutputFolder", Privado).SetValue(creador, salida);
+                        tCreador.GetField("m_ImportCameras", Privado).SetValue(creador, false);
+                        var fCalidad = tCreador.GetField("m_Quality", Privado);
+                        fCalidad.SetValue(creador, Enum.Parse(fCalidad.FieldType, "High"));   // ~3× más chico, 58 dB
+                        tCreador.GetMethod("ApplyQualityLevel", Privado).Invoke(creador, null);
+                        tCreador.GetMethod("CreateAsset", Privado).Invoke(creador, null);
+                        var error = tCreador.GetField("m_ErrorMessage", Privado).GetValue(creador) as string;
+                        if (!string.IsNullOrEmpty(error)) { Anotar($"splat {nombre}: ERROR {error}"); continue; }
+                    }
+                    finally { UnityEngine.Object.DestroyImmediate(creador); }
+                }
+                var asset = AssetDatabase.LoadAssetAtPath<GaussianSplatAsset>(rutaAsset);
+                if (!asset) { Anotar($"splat {nombre}: no se creó el asset"); continue; }
+                string rutaJson = Path.Combine(carpeta, nombre + ".json");
+                var region = File.Exists(rutaJson) ? JsonUtility.FromJson<RegionSplat>(File.ReadAllText(rutaJson)) : new RegionSplat();
+                if (string.IsNullOrEmpty(region.capitulo)) region.capitulo = nombre;
+                lista.Add(new SplatPreparado { nombre = nombre, asset = asset, region = region });
+                Anotar($"splat {nombre}: capítulo {region.capitulo}, radio {region.radio_m:0} m, {new FileInfo(archivo).Length / 1048576} MB de .ply");
+            }
+            return lista;
+        }
+
+        /// <summary>Blender (z arriba, mano derecha) → Unity (y arriba, mano izquierda): (x, y, z) → (x, z, y).</summary>
+        static Vector3 DeBlender(float[] p) => p == null || p.Length < 3 ? Vector3.zero : new Vector3(p[0], p[2], p[1]);
+
+        static void ArmarSplats(List<SplatPreparado> splats, Transform raiz, Splats sistema)
+        {
+            if (splats.Count == 0) return;
+            var raizSplats = new GameObject("Splats").transform;
+            raizSplats.SetParent(raiz, false);
+            var lista = new List<SplatCapitulo>();
+            foreach (var sp in splats)
+            {
+                var go = new GameObject("Splat_" + sp.nombre);
+                go.transform.SetParent(raizSplats, false);
+                var r = sp.region;
+                if (r.posicion != null && r.posicion.Length == 3)
+                {
+                    // captura real: viene ubicada a mano (Unity)
+                    go.transform.localPosition = new Vector3(r.posicion[0], r.posicion[1], r.posicion[2]);
+                    // rotación: cuaternión (x, y, z, w) de importar_en_blender.py --exportar, o ángulos de Euler
+                    if (r.rotacion != null && r.rotacion.Length == 4) go.transform.localRotation = new Quaternion(r.rotacion[0], r.rotacion[1], r.rotacion[2], r.rotacion[3]);
+                    else if (r.rotacion != null && r.rotacion.Length == 3) go.transform.localEulerAngles = new Vector3(r.rotacion[0], r.rotacion[1], r.rotacion[2]);
+                    if (r.escala != null && r.escala.Length == 3) go.transform.localScale = new Vector3(r.escala[0], r.escala[1], r.escala[2]);
+                }
+                else
+                {
+                    // horneado de Blender: el mismo mundo, sólo cambian los ejes. Rotar -90° en X y
+                    // espejar Y lleva (x, y, z) de Blender a (x, z, y) de Unity
+                    go.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+                    go.transform.localScale = new Vector3(1f, -1f, 1f);
+                }
+                var gs = go.AddComponent<GaussianSplatRenderer>();
+                gs.m_Asset = sp.asset;
+                go.SetActive(false);
+                lista.Add(new SplatCapitulo
+                {
+                    capitulo = r.capitulo, splat = gs, radio = r.radio_m,
+                    desde = DeBlender(r.desde_blender), hasta = DeBlender(r.hasta_blender),
+                });
+            }
+            sistema.capitulos = lista.ToArray();
+
+            // el pase de HDRP que los dibuja: después del posproceso (los splats ya traen el look de
+            // Cycles; antes, la exposición automática de HDRP los quemaba o los apagaba)
+            var tPase = Type.GetType("GaussianSplatting.Runtime.GaussianSplatHDRPPass, GaussianSplatting");
+            if (tPase == null) { Anotar("splats: no encuentro GaussianSplatHDRPPass (¿falta GS_ENABLE_HDRP?)"); return; }
+            var volumen = new GameObject("Splats_pase_HDRP").AddComponent<CustomPassVolume>();
+            volumen.isGlobal = true;
+            volumen.injectionPoint = CustomPassInjectionPoint.AfterPostProcess;
+            volumen.AddPassOfType(tPase);
+            Anotar($"splats: {lista.Count} en la escena ({string.Join(", ", lista.Select(x => x.capitulo))})");
+        }
+
+        // ------------------------------------------------------------------------------------------
         // 4. suelos y terrenos
         // ------------------------------------------------------------------------------------------
 
@@ -660,7 +777,8 @@ namespace FNS.Editor
         // 5. escena
         // ------------------------------------------------------------------------------------------
 
-        static void ArmarEscena(Mundo mundo, List<EspecieFlora> flora, List<ModeloAnimal> fauna, Dictionary<string, TerrainLayer> capas)
+        static void ArmarEscena(Mundo mundo, List<EspecieFlora> flora, List<ModeloAnimal> fauna, Dictionary<string, TerrainLayer> capas,
+                                List<SplatPreparado> splats)
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var raizTri = new GameObject("Era_Triasico");
@@ -797,6 +915,11 @@ namespace FNS.Editor
                 vegs.Add(v);
             }
             calidad.vegetacion = vegs.ToArray();
+
+            var splatsC = sistemas.AddComponent<Splats>();
+            splatsC.vegetaciones = vegs.ToArray();
+            director.splats = splatsC;
+            ArmarSplats(splats, raizTri.transform, splatsC);
 
             Volcan(mundo, raizTri.transform, ambiente);
             Ceniza(ambiente);

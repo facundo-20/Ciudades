@@ -20,6 +20,7 @@ namespace FNS
         public Ambiente ambiente;
         public Fauna fauna;
         public Interfaz interfaz;
+        public Splats splats;                    // opcional: los capítulos horneados en Gaussian splats
         public Terrain[] suelosTriasico, suelosHoy;
         public float alturaOjo = 1.6f;
         public bool automatico = true;
@@ -68,6 +69,7 @@ namespace FNS
             ambiente.PonerEra(hoy);
             ambiente.Capitulo(cap, inmediato: primero);
             fauna.CambioDeCapitulo(cap);
+            if (splats) splats.CambioDeCapitulo(cap);
             interfaz.MostrarCapitulo(cap, Mundo);
             primero = false;
             Colocar(0f, true);
@@ -101,6 +103,7 @@ namespace FNS
             }
             else fundidoEstado = Mathf.MoveTowards(fundidoEstado, 0f, dt / (dur * 1.4f));
             ambiente.Fundido(fundidoEstado, Actual.clave == "ceniza" || Actual.EsHoy);
+            if (splats) splats.Fundido(fundidoEstado);
 
             Colocar(dt, false);
 

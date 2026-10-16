@@ -13,6 +13,7 @@ import { crearFauna, ESPECIES } from './fauna.js';
 import { crearEntrada } from './entrada.js';
 import { crearEfectos } from './efectos.js';
 import { CAPITULOS, FICHAS, crearDirector } from './capitulos.js';
+import { crearSplats } from './splats.js';
 import './estilo.css';
 
 const q = new URLSearchParams(location.search);
@@ -85,6 +86,8 @@ avisar('Plantando el bosque de Dicroidium…');
 const flora = await crearFlora(escena, CALIDAD, `${import.meta.env.BASE_URL}assets/`);
 avisar('Despertando a los animales…');
 const fauna = await crearFauna(escena, `${import.meta.env.BASE_URL}modelos/`);
+// la flora horneada en Gaussian splats (si hay en public/splats/): luz de Cycles en vivo
+const splats = await crearSplats(escena, render, `${import.meta.env.BASE_URL}splats/`, flora);
 
 const entrada = crearEntrada(lienzo, { ws: WS });
 const director = crearDirector();
@@ -195,6 +198,7 @@ function cuadro() {
   agua.malla.material.opacity = 0.86 * (1 - suave.era);
   agua.malla.visible = suave.era < 0.98;
   flora.era(suave.era);
+  splats.opacidad(k);
   cielo.uniforms.turbidity.value = 6 + suave.ceniza * 14;
   render.toneMappingExposure = 0.75 - suave.ceniza * 0.25 + suave.era * 0.05;
 
@@ -216,6 +220,7 @@ function cuadro() {
     ui.titulo.textContent = cap.titulo;
     ui.sub.textContent = cap.subtitulo;
     document.body.dataset.capitulo = cap.clave;
+    splats.capitulo(cap.clave);
     [...ui.puntos.children].forEach((b, i) => b.classList.toggle('activo', i === D.indice));
     fichaAuto = t + 6;
     fichaHasta = 0;                 // la ficha del capítulo anterior no queda colgada
@@ -246,6 +251,6 @@ requestAnimationFrame(cuadro);
 
 // para las pruebas automáticas y para depurar desde la consola
 window.__triasico = {
-  director, fauna, flora: flora.conteo, especies: Object.keys(ESPECIES), render, camara,
+  director, fauna, flora: flora.conteo, especies: Object.keys(ESPECIES), render, camara, splats,
   get fps() { return fps; }, get info() { return render.info.render; }, tocar, entrada,
 };

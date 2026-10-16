@@ -13,7 +13,8 @@
     "probar": "node server/probar.mjs"
   },
   "dependencies": {
-    "three": "^0.170.0",
+    "@sparkjsdev/spark": "^2.3.1",
+    "three": "^0.180.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

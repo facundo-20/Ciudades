@@ -47,3 +47,8 @@ fns2026/unity/ParqueTriasico/Assets/FNS/Texturas/
 fns2026/unity/ParqueTriasico/Assets/FNS/Render/
 fns2026/unity/ParqueTriasico/Assets/FNS/Escenas/
 fns2026/unity/ParqueTriasico/Assets/FNS/Datos/
+# Gaussian splats: el trabajo de entrenamiento y las herramientas bajadas se quedan en cada máquina;
+# los .ply de Unity pesan cientos de MB (se generan en la misma PC que compila Unity)
+fns2026/pipeline/splats/trabajo/
+fns2026/pipeline/splats/herramientas/
+fns2026/unity/ParqueTriasico/Datos/splats/*.ply

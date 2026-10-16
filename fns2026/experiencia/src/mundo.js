@@ -272,20 +272,36 @@ export async function crearFlora(escena, calidad, base = 'assets/') {
     escena.add(im);
     instancias.push(im);
   }
+  // donde hay un splat horneado (splats.js) no van las mallas: cápsula alrededor del recorrido
+  let zona = null, ultimaEra = -1, ultimoT = 0;
+  function excluida(p) {
+    if (!zona) return false;
+    const [ax, az] = zona.desde, [bx, bz] = zona.hasta;
+    const abx = bx - ax, abz = bz - az;
+    const k = Math.max(0, Math.min(1, ((p.x - ax) * abx + (p.z - az) * abz) / Math.max(abx * abx + abz * abz, 1e-9)));
+    return Math.hypot(p.x - (ax + k * abx), p.z - (az + k * abz)) < zona.radio;
+  }
   // para "hoy": la flora se hunde y desaparece (231 millones de años de erosión)
-  function era(t) {
+  function era(t, forzar = false) {
     const k = 1 - THREE.MathUtils.smoothstep(t, 0.05, 0.6);
+    ultimoT = t;
+    if (!forzar && Math.abs(k - ultimaEra) < 1e-4) return;     // sin cambios: no rehacer las matrices
+    ultimaEra = k;
     for (const im of instancias) {
       im.visible = k > 0.01;
       if (!im.visible) continue;
       im.userData.lista.forEach((p, i) => {
-        q.setFromAxisAngle(eje, p.rot); s.setScalar(p.esc * k); pos.set(p.x, p.y - 0.05 - (1 - k) * 2, p.z);
+        q.setFromAxisAngle(eje, p.rot); s.setScalar(excluida(p) ? 0 : p.esc * k); pos.set(p.x, p.y - 0.05 - (1 - k) * 2, p.z);
         im.setMatrixAt(i, m4.compose(pos, q, s));
       });
       im.instanceMatrix.needsUpdate = true;
     }
   }
-  return { instancias, era, conteo: Object.fromEntries(Object.entries(porNombre).map(([k, v]) => [k, v.length])) };
+  function excluir(z) {
+    zona = z;
+    era(ultimoT, true);
+  }
+  return { instancias, era, excluir, conteo: Object.fromEntries(Object.entries(porNombre).map(([k, v]) => [k, v.length])) };
 }
 
 function moldeSimple(nombre) {
