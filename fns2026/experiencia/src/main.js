@@ -14,6 +14,7 @@ import { crearEntrada } from './entrada.js';
 import { crearEfectos } from './efectos.js';
 import { CAPITULOS, FICHAS, crearDirector } from './capitulos.js';
 import { crearSplats } from './splats.js';
+import { crearSonido } from './sonido.js';
 import './estilo.css';
 
 const q = new URLSearchParams(location.search);
@@ -68,6 +69,9 @@ const cielo = crearCielo(escena, CALIDAD);
 const volcan = crearVolcan();
 escena.add(volcan);
 const efectos = crearEfectos(escena);
+// el sonido de la sala (sintetizado: pipeline/sonido): ambiente, volcán, pisadas y voces
+const sonido = crearSonido(camara, `${import.meta.env.BASE_URL}sonido/`);
+sonido.volcan(volcan);
 const pmrem = new THREE.PMREMGenerator(render);
 const escenaCielo = new THREE.Scene();
 let ambiente = null;
@@ -132,7 +136,7 @@ function tocar(t) {
   const golpe = rayo.intersectObjects(cuerposFauna, true)[0];
   if (golpe && golpe.distance < 60) {
     const a = golpe.object.userData.animal;
-    if (a && !a.fosil) { a.acariciar(); mostrarFicha(a.clave); return; }
+    if (a && !a.fosil) { a.acariciar(); sonido.voz(a); mostrarFicha(a.clave); return; }
   }
   const suelo = rayo.intersectObjects([agua.malla, terreno.malla], false)[0];
   if (suelo && suelo.distance < 120) {
@@ -210,9 +214,12 @@ function cuadro() {
   visitante.corre = E.cuerpo.corre;
   for (const a of fauna) {
     a.fosil = cap.fosil ? Math.min(1, a.fosil + dt * 0.25) : 0;
-    if (a.pos.distanceTo(camara.position) < 160) a.update(dt, t, visitante);
+    const lejos = a.pos.distanceTo(camara.position);
+    if (lejos < 160) a.update(dt, t, visitante);
+    if (!a.fosil) sonido.animal(a, lejos);
   }
   efectos.update(dt, t, { camara, volcan: suave.volcan, cenizaCant: suave.ceniza, volcanPos: volcan.position });
+  sonido.update(dt, { volcanActividad: suave.volcan });
 
   // textos
   if (capMostrado !== D.indice) {
@@ -221,6 +228,7 @@ function cuadro() {
     ui.sub.textContent = cap.subtitulo;
     document.body.dataset.capitulo = cap.clave;
     splats.capitulo(cap.clave);
+    sonido.capitulo(cap.clave);
     [...ui.puntos.children].forEach((b, i) => b.classList.toggle('activo', i === D.indice));
     fichaAuto = t + 6;
     fichaHasta = 0;                 // la ficha del capítulo anterior no queda colgada
@@ -251,6 +259,6 @@ requestAnimationFrame(cuadro);
 
 // para las pruebas automáticas y para depurar desde la consola
 window.__triasico = {
-  director, fauna, flora: flora.conteo, especies: Object.keys(ESPECIES), render, camara, splats,
+  director, fauna, flora: flora.conteo, especies: Object.keys(ESPECIES), render, camara, splats, sonido,
   get fps() { return fps; }, get info() { return render.info.render; }, tocar, entrada,
 };

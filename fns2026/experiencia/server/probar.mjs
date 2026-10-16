@@ -53,6 +53,11 @@ for (let i = 0; i < 6; i++) {
   ok(cap === nombres[i], `capítulo ${i} (${nombres[i]})`);
 }
 
+// el sonido: los ambientes de los capítulos recorridos se bajaron y decodificaron (OGG sintetizados)
+const son = await pag.evaluate(() => ({ cargados: window.__triasico.sonido.cargados?.() ?? -1, estado: window.__triasico.sonido.contexto?.state }));
+console.log('  sonido:', JSON.stringify(son));
+ok(son.cargados >= 6, `el sonido cargó (${son.cargados} archivos, audio ${son.estado})`);
+
 // tocar un animal: proyectar un Hyperodapedon a la pantalla y "tocarlo"
 await pag.keyboard.press('1');
 await pag.waitForFunction(() => window.__triasico.director.estado.capitulo.clave === 'rio', null, { timeout: 30000 });

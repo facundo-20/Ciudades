@@ -33,6 +33,7 @@ SR = 48000
 AQUI = os.path.dirname(os.path.abspath(__file__))
 FNS = os.path.abspath(os.path.join(AQUI, "..", ".."))
 SALIDA = os.path.join(FNS, "unity", "ParqueTriasico", "Datos", "sonido")
+WEB = os.path.join(FNS, "experiencia", "public", "sonido")              # la web usa los mismos
 
 
 # ---------------------------------------------------------------------------------------------
@@ -315,6 +316,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--salida", default=SALIDA)
     ap.add_argument("--segundos", type=float, default=48.0)
+    ap.add_argument("--sin-web", action="store_true", help="no copiar a experiencia/public/sonido")
     a = ap.parse_args()
     os.makedirs(a.salida, exist_ok=True)
     rng = np.random.default_rng(231)
@@ -346,6 +348,13 @@ def main():
     total = sum(os.path.getsize(os.path.join(a.salida, f)) for f in os.listdir(a.salida) if f.endswith(".ogg"))
     informe["mb"] = round(total / 1048576, 2)
     json.dump(informe, open(os.path.join(a.salida, "informe_sonido.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    if not a.sin_web and os.path.abspath(a.salida) == os.path.abspath(SALIDA):
+        import shutil
+        os.makedirs(WEB, exist_ok=True)
+        for f in os.listdir(a.salida):
+            if f.endswith(".ogg"):
+                shutil.copy2(os.path.join(a.salida, f), os.path.join(WEB, f))
+        print(f"  copiados a la web: {WEB}")
     print(f"listo: {len([f for f in os.listdir(a.salida) if f.endswith('.ogg')])} archivos · {informe['mb']} MB → {a.salida}")
 
 
