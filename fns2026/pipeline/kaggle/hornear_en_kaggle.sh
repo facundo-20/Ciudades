@@ -69,15 +69,16 @@ for cap in "${CAPS[@]}"; do
   js="$(find "$TMP/salida" -name "$cap.json" | head -1)"
   [ -n "$ply" ] || { echo "   $cap: no vino el .ply"; continue; }
   cp "$ply" "$js" "$FNS/unity/ParqueTriasico/Datos/splats/"
-  # la web: girado a los ejes de three.js
-  npx -y @playcanvas/splat-transform@3.10.1 "$ply" -r -90,0,0 "$FNS/experiencia/public/splats/$cap.sog"
+  # la web: girado a los ejes de three.js. En la nube no hay GPU: .compressed.ply (sale en segundos;
+  # el .sog necesita GPU para no tardar horas). Spark lee los dos
+  npx -y @playcanvas/splat-transform@3.10.1 -g cpu "$ply" -r -90,0,0 "$FNS/experiencia/public/splats/$cap.compressed.ply"
   python3 - "$js" "$FNS/experiencia/public/splats/lista.json" "$cap" <<'EOF'
 import json, os, sys
 region, ruta, cap = json.load(open(sys.argv[1])), sys.argv[2], sys.argv[3]
 lista = json.load(open(ruta)) if os.path.exists(ruta) else []
 lista = [s for s in lista if s.get("capitulo") != cap]
 d, h = region["desde_blender"], region["hasta_blender"]
-lista.append({"capitulo": cap, "archivo": f"{cap}.sog", "desde": [d[0], -d[1]], "hasta": [h[0], -h[1]], "radio": region["radio_m"]})
+lista.append({"capitulo": cap, "archivo": f"{cap}.compressed.ply", "desde": [d[0], -d[1]], "hasta": [h[0], -h[1]], "radio": region["radio_m"]})
 json.dump(lista, open(ruta, "w"), indent=1)
 EOF
   echo "   $cap: Unity y web listos"
