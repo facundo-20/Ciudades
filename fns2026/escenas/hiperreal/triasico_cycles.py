@@ -1103,16 +1103,27 @@ def configurar_render(ancho, alto, muestras, exposicion=None):
     gpu = os.environ.get("FNS_GPU")
     esc.cycles.device = "GPU" if gpu else "CPU"
     if gpu:
+        # el primer tipo que tenga una placa de verdad: si OPTIX "existe" pero sin placas (p. ej. un
+        # contenedor sin la biblioteca de OptiX), antes quedaba elegido y Cycles caía a la CPU sin avisar
         prefs = bpy.context.preferences.addons["cycles"].preferences
-        for tipo in ("OPTIX", "METAL", "CUDA", "HIP"):
+        elegido = None
+        for tipo in ("OPTIX", "METAL", "CUDA", "HIP", "ONEAPI"):
             try:
                 prefs.compute_device_type = tipo
-                prefs.get_devices()
-                for d in prefs.devices:
-                    d.use = True
-                break
             except TypeError:
                 continue
+            prefs.get_devices()
+            placas = [d for d in prefs.devices if d.type == tipo]
+            if placas:
+                for d in prefs.devices:
+                    d.use = d.type == tipo
+                elegido = f"{tipo}: {', '.join(d.name for d in placas)}"
+                break
+        if elegido:
+            print(f"   Cycles en la GPU ({elegido})", flush=True)
+        else:
+            esc.cycles.device = "CPU"
+            print("   Cycles: no encontré GPU, uso la CPU", flush=True)
     esc.cycles.samples = muestras
     esc.cycles.use_denoising = True
     esc.cycles.volume_step_rate = 4.0
